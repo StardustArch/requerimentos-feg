@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Anexo, Pedido, TipoDocumento
+from .models import Anexo, Decisao, Pedido, TipoDocumento
 
 
 class SomenteLeituraAdmin(admin.ModelAdmin):
@@ -53,6 +53,25 @@ class AnexoAdmin(SomenteLeituraAdmin):
         "nome_original",
         "carregado_por__username",
     )
+
+
+@admin.register(Decisao)
+class DecisaoAdmin(SomenteLeituraAdmin):
+    list_display = (
+        "pedido",
+        "etapa",
+        "resultado",
+        "decidido_por",
+        "data_hora",
+    )
+    list_display_links = ("pedido",)
+    list_filter = ("etapa", "resultado")
+    search_fields = (
+        "pedido__protocolo",
+        "justificacao",
+        "decidido_por__username",
+    )
+    date_hierarchy = "data_hora"
 
 
 @admin.register(TipoDocumento)

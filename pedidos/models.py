@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -139,6 +140,12 @@ class Pedido(models.Model):
         default=ETAPA_SECRETARIA_RECEPCAO,
     )
     motivo_indeferimento = models.TextField(blank=True, default="")
+    indeferido_na_etapa = models.CharField(
+        max_length=30,
+        choices=ETAPA_CHOICES,
+        blank=True,
+        default="",
+    )
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)
     criado_em = models.DateTimeField(auto_now_add=True)
     pronto_em = models.DateTimeField(blank=True, null=True)
@@ -161,7 +168,17 @@ class Pedido(models.Model):
 
     @property
     def etapa_simples(self):
+        if self.estado == self.ESTADO_INDEFERIDO:
+            return "Indeferido"
+        if self.estado == self.ESTADO_PRONTO:
+            return "Pronto para levantamento"
+        if self.estado == self.ESTADO_ENTREGUE:
+            return "Entregue"
         return self.get_etapa_actual_display()
+
+    @property
+    def dias_na_fila(self):
+        return max((timezone.now() - self.criado_em).days, 0)
 
     def save(self, *args, **kwargs):
         e_novo = self._state.adding
@@ -215,3 +232,59 @@ class Anexo(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} — {self.nome_original}"
+
+
+class DecisaoImutavelError(ValidationError, ValueError):
+    """Erro levantado quando se tenta alterar ou apagar uma decisão."""
+
+
+class Decisao(models.Model):
+    RESULTADO_APROVADO = "aprovado"
+    RESULTADO_INDEFERIDO = "indeferido"
+    RESULTADO_PRONTO = "pronto"
+    RESULTADO_ENTREGUE = "entregue"
+
+    RESULTADO_CHOICES = (
+        (RESULTADO_APROVADO, "Aprovado"),
+        (RESULTADO_INDEFERIDO, "Indeferido"),
+        (RESULTADO_PRONTO, "Pronto"),
+        (RESULTADO_ENTREGUE, "Entregue"),
+    )
+
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.PROTECT,
+        related_name="decisoes",
+    )
+    etapa = models.CharField(max_length=30, choices=Pedido.ETAPA_CHOICES)
+    resultado = models.CharField(max_length=20, choices=RESULTADO_CHOICES)
+    justificacao = models.TextField(blank=True, default="")
+    decidido_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="decisoes",
+    )
+    data_hora = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["data_hora", "pk"]
+        verbose_name = "Decisão"
+        verbose_name_plural = "Decisões"
+
+    def __str__(self):
+        return (
+            f"{self.pedido} — {self.get_etapa_display()}: "
+            f"{self.get_resultado_display()}"
+        )
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise DecisaoImutavelError(
+                "Uma decisão registada não pode ser alterada."
+            )
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise DecisaoImutavelError(
+            "Uma decisão registada não pode ser apagada."
+        )

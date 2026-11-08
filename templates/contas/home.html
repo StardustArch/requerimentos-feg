@@ -98,12 +98,16 @@
                 <div class="card h-100">
                     <div class="card-body d-flex flex-column">
                         <h3 class="card-title h5">
-                            <i class="bi bi-inbox"></i>Pedidos recebidos
+                            <i class="bi bi-inbox"></i>Pedidos novos
                         </h3>
+                        <p class="display-6 fw-semibold mb-1">{{ contagens_fila.novos }}</p>
                         <p class="card-text flex-grow-1">
-                            Acompanha os pedidos dos estudantes e confirma os pagamentos.
+                            Pedidos recebidos que aguardam a primeira validação da
+                            secretaria.
                         </p>
-                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                        <a href="{% url 'pedidos:fila' %}?tab=novos" class="btn btn-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
                     </div>
                 </div>
             </div>
@@ -112,12 +116,32 @@
                 <div class="card h-100">
                     <div class="card-body d-flex flex-column">
                         <h3 class="card-title h5">
-                            <i class="bi bi-bag-check"></i>Entrega de documentos
+                            <i class="bi bi-pen"></i>Aguardam assinatura
                         </h3>
+                        <p class="display-6 fw-semibold mb-1">{{ contagens_fila.assinatura }}</p>
+                        <p class="card-text flex-grow-1">
+                            Pedidos prontos a aguardar a assinatura da direcção.
+                        </p>
+                        <a href="{% url 'pedidos:fila' %}?tab=assinatura" class="btn btn-outline-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-bag-check"></i>Prontos para entrega
+                        </h3>
+                        <p class="display-6 fw-semibold mb-1">{{ contagens_fila.prontos }}</p>
                         <p class="card-text flex-grow-1">
                             Regista a entrega física dos documentos na secretaria.
                         </p>
-                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                        <a href="{% url 'pedidos:fila' %}?tab=prontos" class="btn btn-outline-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
                     </div>
                 </div>
             </div>
@@ -132,11 +156,14 @@
                         <h3 class="card-title h5">
                             <i class="bi bi-cash-coin"></i>Validação de crédito
                         </h3>
+                        <p class="display-6 fw-semibold mb-1">{{ contagens_fila.credito }}</p>
                         <p class="card-text flex-grow-1">
-                            Confirma os pagamentos e actualiza o estado financeiro dos
-                            pedidos.
+                            Confirma os pagamentos dos pedidos que estão na fila do
+                            controlo de crédito.
                         </p>
-                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                        <a href="{% url 'pedidos:fila' %}" class="btn btn-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
                     </div>
                 </div>
             </div>
@@ -151,16 +178,45 @@
                         <h3 class="card-title h5">
                             <i class="bi bi-mortarboard"></i>Validação académica
                         </h3>
+                        <p class="display-6 fw-semibold mb-1">{{ contagens_fila.registo }}</p>
                         <p class="card-text flex-grow-1">
-                            Valida os pedidos que exigem confirmação do percurso académico.
+                            Valida os pedidos que exigem confirmação do percurso
+                            académico.
                         </p>
-                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                        <a href="{% url 'pedidos:fila' %}" class="btn btn-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
                     </div>
                 </div>
             </div>
         {% elif perfil.papel == "admin" or request.user.is_superuser %}
             <div class="col-12">
                 <h2 class="h5 text-uppercase text-muted mb-0">Área de Administração</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-inboxes"></i>Fila de trabalho
+                        </h3>
+                        <dl class="row small mb-3">
+                            <dt class="col-8">Novos</dt>
+                            <dd class="col-4 text-end">{{ contagens_fila.novos }}</dd>
+                            <dt class="col-8">Controlo de crédito</dt>
+                            <dd class="col-4 text-end">{{ contagens_fila.credito }}</dd>
+                            <dt class="col-8">Registo académico</dt>
+                            <dd class="col-4 text-end">{{ contagens_fila.registo }}</dd>
+                            <dt class="col-8">Aguardam assinatura</dt>
+                            <dd class="col-4 text-end">{{ contagens_fila.assinatura }}</dd>
+                            <dt class="col-8">Prontos</dt>
+                            <dd class="col-4 text-end">{{ contagens_fila.prontos }}</dd>
+                        </dl>
+                        <a href="{% url 'pedidos:fila' %}" class="btn btn-primary w-100 mt-auto">
+                            Abrir fila
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-6 col-xl-4">

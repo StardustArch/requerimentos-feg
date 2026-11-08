@@ -4,9 +4,8 @@ Sistema de pedidos de documentos para a Faculdade de Economia e Gestão da
 Universidade Católica de Moçambique. Os estudantes submetem pedidos e os
 documentos são entregues fisicamente na secretaria.
 
-Esta é a **Fase 2**: pedido do estudante, anexos protegidos e acompanhamento.
-As filas de trabalho do pessoal e as decisões de aprovação/indeferimento ficam
-para a Fase 3.
+Esta é a **Fase 3**: filas de trabalho por departamento, decisões, entrega e
+notificações por email ao estudante.
 
 ## Requisitos
 
@@ -45,6 +44,14 @@ A aplicação fica disponível em <http://127.0.0.1:8000/>.
 | `TAXA_FORMULARIO` | `20` | Valor base do formulário de pedido, sem IVA. |
 | `MAX_ANEXO_MB` | `5` | Tamanho máximo de cada anexo, em megabytes. |
 | `DEMO_PASSWORD` | `demo123` | Palavra-passe das contas criadas por `seed_demo`. |
+| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Backend de email. Em produção use o backend SMTP do Django. |
+| `EMAIL_HOST` | `localhost` | Servidor SMTP. |
+| `EMAIL_PORT` | `25` | Porta SMTP. |
+| `EMAIL_USE_TLS` | `False` | Activa TLS na ligação SMTP (`True`/`False`). |
+| `EMAIL_HOST_USER` | vazio | Utilizador do servidor SMTP. |
+| `EMAIL_HOST_PASSWORD` | vazio | Palavra-passe do servidor SMTP. |
+| `DEFAULT_FROM_EMAIL` | `Pedidos UCM-FEG <nao-responder@ucm.ac.mz>` | Remetente das notificações. |
+| `LEVANTAMENTO_INFO` | `na Secretaria da Faculdade` | Texto do email de "pronto" que indica onde levantar o documento. |
 
 Exemplo para produção:
 
@@ -57,6 +64,14 @@ export SITE_URL='https://requerimentos.ucm.ac.mz'
 export GOOGLE_CLIENT_ID='...'
 export GOOGLE_CLIENT_SECRET='...'
 export DEMO_PASSWORD='uma-palavra-passe-forte'
+export EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+export EMAIL_HOST='smtp.ucm.ac.mz'
+export EMAIL_PORT='587'
+export EMAIL_USE_TLS='True'
+export EMAIL_HOST_USER='requerimentos@ucm.ac.mz'
+export EMAIL_HOST_PASSWORD='...'
+export DEFAULT_FROM_EMAIL='Pedidos UCM-FEG <requerimentos@ucm.ac.mz>'
+export LEVANTAMENTO_INFO='na Secretaria da Faculdade'
 ```
 
 ## Login
@@ -71,6 +86,39 @@ No Google Cloud Console, configure o URI de redireccionamento autorizado:
 ```text
 https://<domínio>/accounts/google/login/callback/
 ```
+
+## Fluxo dos pedidos
+
+O percurso normal de um pedido é:
+
+```text
+secretaria_recepcao
+  -> credito
+  -> registo (só quando o tipo exige confirmação académica)
+  -> secretaria_final (aguarda assinatura da direcção, fora do sistema)
+  -> pronto
+  -> entregue
+```
+
+Quem faz o quê:
+
+| Etapa / estado | Papel responsável | Acção |
+| --- | --- | --- |
+| `secretaria_recepcao` | Secretaria | Aprovar (envia para o crédito) ou indeferir. |
+| `credito` | Controlo de Crédito | Confirmar o pagamento, carregar extracto se necessário, aprovar ou indeferir. |
+| `registo` | Registo Académico | Confirmar o percurso académico, aprovar ou indeferir. |
+| `secretaria_final` | Secretaria | Acompanhar a assinatura da direcção e marcar como pronto. |
+| `pronto` | Secretaria | Registar a entrega física do documento. |
+| `indeferido` | Qualquer etapa | Pára o pedido. O estudante tem de submeter um novo pedido. |
+
+Cada decisão fica registada de forma imutável, com a etapa, o resultado, a
+justificação, o autor e a data/hora. O administrador pode decidir em qualquer
+etapa. A secretaria e o administrador vêem qualquer pedido; o crédito e o
+registo só vêem os pedidos que estão na sua própria etapa.
+
+Quando um pedido fica **pronto** ou é **indeferido**, o estudante recebe um
+email. O envio é feito depois de a decisão estar gravada; se o servidor de email
+falhar, a falha fica no log e a decisão mantém-se.
 
 ## Contas de demonstração
 
@@ -88,9 +136,11 @@ A conta `estudante1` tem número de estudante, curso e grau preenchidos. Se
 `DEMO_PASSWORD` não for definida, o comando mostra um aviso por estar a usar a
 palavra-passe de demonstração.
 
-O `seed_demo` também cria três pedidos de exemplo para `estudante1` (um na
-secretaria, um no controlo de crédito e um indeferido com motivo), cada um com
-uma cópia de BI em PDF e um comprovativo em PNG gerados pelo próprio comando.
+O `seed_demo` também cria oito pedidos de exemplo para `estudante1`, um em cada
+fase do fluxo (secretaria, crédito, registo, secretaria final, pronto e
+entregue) e dois indeferidos, um pela secretaria e outro pelo crédito. Cada
+pedido tem uma cópia de BI em PDF e um comprovativo em PNG gerados pelo próprio
+comando, e as decisões são criadas através dos serviços da aplicação.
 
 ## Tipos de documento
 
@@ -129,6 +179,11 @@ todas pela vista `pedidos:anexo_download`, que confirma quem está autenticado
 e qual o seu papel antes de entregar o ficheiro. Um pedido de outro estudante
 ou um anexo não visível responde com **404**, para não revelar a existência do
 ficheiro.
+
+Os extractos bancários carregados pelo Controlo de Crédito são internos: só o
+próprio crédito (enquanto o pedido está nessa etapa) e o administrador os podem
+descarregar. A secretaria, o registo e o estudante recebem **404** nesses
+anexos.
 
 Como os anexos são dados sensíveis e não podem ser reconstruídos a partir da
 base de dados, a pasta `media/` (ou o volume/bucket usado em produção) precisa

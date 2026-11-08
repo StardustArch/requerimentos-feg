@@ -85,22 +85,19 @@
                                        {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}aria-current="page"{% endif %}
                                        href="{% url 'pedidos:meus_pedidos' %}">Meus pedidos</a>
                                 </li>
-                            {% elif request.user.perfil.papel == "secretaria" %}
+                            {% else %}
                                 <li class="nav-item">
-                                    <span class="nav-link disabled">Área da Secretaria</span>
+                                    <a class="nav-link {% if vista == 'pedidos:fila' %}active{% endif %}"
+                                       {% if vista == 'pedidos:fila' %}aria-current="page"{% endif %}
+                                       href="{% url 'pedidos:fila' %}">Fila</a>
                                 </li>
-                            {% elif request.user.perfil.papel == "credito" %}
-                                <li class="nav-item">
-                                    <span class="nav-link disabled">Controlo de Crédito</span>
-                                </li>
-                            {% elif request.user.perfil.papel == "registo" %}
-                                <li class="nav-item">
-                                    <span class="nav-link disabled">Registo Académico</span>
-                                </li>
-                            {% elif request.user.perfil.papel == "admin" or request.user.is_superuser %}
-                                <li class="nav-item">
-                                    <span class="nav-link disabled">Administração</span>
-                                </li>
+                                {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if vista == 'pedidos:pesquisa' %}active{% endif %}"
+                                           {% if vista == 'pedidos:pesquisa' %}aria-current="page"{% endif %}
+                                           href="{% url 'pedidos:pesquisa' %}">Pesquisa</a>
+                                    </li>
+                                {% endif %}
                             {% endif %}
                         </ul>
                     {% endwith %}

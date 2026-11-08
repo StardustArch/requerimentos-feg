@@ -52,7 +52,14 @@
                                     <span class="badge text-bg-secondary">Entregue</span>
                                 {% endif %}
                             </td>
-                            <td>{{ pedido.etapa_simples }}</td>
+                            <td>
+                                {{ pedido.etapa_simples }}
+                                {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
+                                    <div class="small text-danger">
+                                        {{ pedido.motivo_indeferimento }}
+                                    </div>
+                                {% endif %}
+                            </td>
                             <td>{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
                             <td class="text-end">
                                 <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}"

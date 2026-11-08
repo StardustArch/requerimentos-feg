@@ -139,20 +139,32 @@ class SeedDemoTests(MediaTempMixin, TestCase):
         self.assertFalse(declaracao.passa_registo_academico)
         self.assertIsNone(declaracao.prazo_estimado_dias)
 
-    def test_seed_demo_cria_tres_pedidos_com_dois_anexos_cada(self):
+    def test_seed_demo_cria_pedidos_com_dois_anexos_cada(self):
         call_command("seed_demo", stdout=StringIO())
 
         estudante = User.objects.get(username="estudante1")
         pedidos = Pedido.objects.filter(estudante=estudante)
-        self.assertEqual(pedidos.count(), 3)
-        self.assertEqual(Anexo.objects.filter(pedido__in=pedidos).count(), 6)
+        self.assertEqual(pedidos.count(), 8)
+        self.assertEqual(Anexo.objects.filter(pedido__in=pedidos).count(), 16)
 
         etapas = set(pedidos.values_list("etapa_actual", flat=True))
         self.assertIn(Pedido.ETAPA_SECRETARIA_RECEPCAO, etapas)
         self.assertIn(Pedido.ETAPA_CREDITO, etapas)
+        self.assertIn(Pedido.ETAPA_REGISTO, etapas)
+        self.assertIn(Pedido.ETAPA_SECRETARIA_FINAL, etapas)
 
-        indeferido = pedidos.get(estado=Pedido.ESTADO_INDEFERIDO)
-        self.assertTrue(indeferido.motivo_indeferimento)
+        indeferidos = pedidos.filter(estado=Pedido.ESTADO_INDEFERIDO)
+        self.assertEqual(indeferidos.count(), 2)
+        self.assertTrue(
+            indeferidos.filter(
+                indeferido_na_etapa=Pedido.ETAPA_CREDITO
+            ).exists()
+        )
+        for indeferido in indeferidos:
+            self.assertTrue(indeferido.motivo_indeferimento)
+
+        self.assertTrue(pedidos.filter(estado=Pedido.ESTADO_PRONTO).exists())
+        self.assertTrue(pedidos.filter(estado=Pedido.ESTADO_ENTREGUE).exists())
 
         for pedido in pedidos:
             with self.subTest(protocolo=pedido.protocolo):
@@ -165,8 +177,8 @@ class SeedDemoTests(MediaTempMixin, TestCase):
                 self.assertEqual(extensoes, {"pdf", "png"})
 
         call_command("seed_demo", stdout=StringIO())
-        self.assertEqual(pedidos.count(), 3)
-        self.assertEqual(Anexo.objects.filter(pedido__in=pedidos).count(), 6)
+        self.assertEqual(pedidos.count(), 8)
+        self.assertEqual(Anexo.objects.filter(pedido__in=pedidos).count(), 16)
 
 
 def ficheiro_pdf(nome="bi.pdf", conteudo=None):

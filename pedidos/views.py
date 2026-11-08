@@ -3,15 +3,27 @@ from mimetypes import guess_type
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from contas.models import Perfil
-from contas.permissoes import e_admin, estudante_required, papel_utilizador
+from contas.permissoes import (
+    e_admin,
+    estudante_required,
+    papel_utilizador,
+    secretaria_required,
+    staff_required,
+)
 
+from . import services
 from .forms import NovoPedidoForm
 from .models import Anexo, Pedido, TipoDocumento
+from .validators import validar_anexo
 
 TIPOS_DE_ANEXO = (
     (Anexo.TIPO_BI, "anexo_bi"),
@@ -171,6 +183,13 @@ def _pode_descarregar(utilizador, anexo):
         return True
 
     papel = papel_utilizador(utilizador)
+
+    if anexo.tipo == Anexo.TIPO_EXTRACTO:
+        return (
+            papel == Perfil.PAPEL_CREDITO
+            and anexo.pedido.etapa_actual == Pedido.ETAPA_CREDITO
+        )
+
     if papel == Perfil.PAPEL_SECRETARIA:
         return True
     if papel == Perfil.PAPEL_CREDITO:
@@ -213,3 +232,326 @@ def anexo_download(request, pk):
     )
     resposta["X-Content-Type-Options"] = "nosniff"
     return resposta
+
+
+def _pedidos_na_etapa(etapa):
+    return (
+        Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+            etapa_actual=etapa,
+        )
+        .select_related("estudante__perfil", "tipo")
+        .order_by("criado_em")
+    )
+
+
+def _contagens_fila():
+    return {
+        "novos": Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+            etapa_actual=Pedido.ETAPA_SECRETARIA_RECEPCAO,
+        ).count(),
+        "credito": Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+            etapa_actual=Pedido.ETAPA_CREDITO,
+        ).count(),
+        "registo": Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+            etapa_actual=Pedido.ETAPA_REGISTO,
+        ).count(),
+        "assinatura": Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+            etapa_actual=Pedido.ETAPA_SECRETARIA_FINAL,
+        ).count(),
+        "prontos": Pedido.objects.filter(
+            estado=Pedido.ESTADO_PRONTO,
+        ).count(),
+    }
+
+
+@login_required
+@staff_required
+def fila(request):
+    papel = papel_utilizador(request.user)
+    admin = e_admin(request.user)
+    contagens = _contagens_fila()
+    etapas = Pedido.ETAPA_CHOICES
+
+    if admin:
+        etapa = request.GET.get("etapa") or Pedido.ETAPA_SECRETARIA_RECEPCAO
+        if etapa not in dict(etapas):
+            etapa = Pedido.ETAPA_SECRETARIA_RECEPCAO
+        pedidos = _pedidos_na_etapa(etapa)
+        contexto = {
+            "admin": True,
+            "etapa": etapa,
+            "etapas": etapas,
+            "pedidos": pedidos,
+            "contagens": contagens,
+        }
+    elif papel == Perfil.PAPEL_SECRETARIA:
+        tab = request.GET.get("tab") or "novos"
+        if tab == "assinatura":
+            pedidos = _pedidos_na_etapa(Pedido.ETAPA_SECRETARIA_FINAL)
+        elif tab == "prontos":
+            pedidos = (
+                Pedido.objects.filter(estado=Pedido.ESTADO_PRONTO)
+                .select_related("estudante__perfil", "tipo")
+                .order_by("criado_em")
+            )
+        else:
+            tab = "novos"
+            pedidos = _pedidos_na_etapa(Pedido.ETAPA_SECRETARIA_RECEPCAO)
+        contexto = {
+            "admin": False,
+            "tab": tab,
+            "pedidos": pedidos,
+            "contagens": contagens,
+        }
+    elif papel == Perfil.PAPEL_CREDITO:
+        contexto = {
+            "admin": False,
+            "etapa": Pedido.ETAPA_CREDITO,
+            "pedidos": _pedidos_na_etapa(Pedido.ETAPA_CREDITO),
+            "contagens": contagens,
+        }
+    elif papel == Perfil.PAPEL_REGISTO:
+        contexto = {
+            "admin": False,
+            "etapa": Pedido.ETAPA_REGISTO,
+            "pedidos": _pedidos_na_etapa(Pedido.ETAPA_REGISTO),
+            "contagens": contagens,
+        }
+    else:
+        raise PermissionDenied("Sem acesso à fila de trabalho.")
+
+    return render(request, "pedidos/fila.html", contexto)
+
+
+@login_required
+@secretaria_required
+def pesquisa(request):
+    pedidos = Pedido.objects.select_related(
+        "estudante__perfil",
+        "tipo",
+    )
+
+    q = (request.GET.get("q") or "").strip()
+    if q:
+        pedidos = pedidos.filter(
+            Q(protocolo__icontains=q)
+            | Q(estudante__first_name__icontains=q)
+            | Q(estudante__last_name__icontains=q)
+            | Q(estudante__username__icontains=q)
+            | Q(estudante__email__icontains=q)
+            | Q(estudante__perfil__numero_estudante__icontains=q)
+        )
+
+    estado = request.GET.get("estado") or ""
+    if estado in dict(Pedido.ESTADO_CHOICES):
+        pedidos = pedidos.filter(estado=estado)
+
+    etapa = request.GET.get("etapa") or ""
+    if etapa in dict(Pedido.ETAPA_CHOICES):
+        pedidos = pedidos.filter(etapa_actual=etapa)
+
+    tipo_id = request.GET.get("tipo") or ""
+    if tipo_id:
+        try:
+            pedidos = pedidos.filter(tipo_id=int(tipo_id))
+        except (TypeError, ValueError):
+            pedidos = pedidos.none()
+
+    pedidos = pedidos.order_by("-criado_em")
+    paginador = Paginator(pedidos, 25)
+    pagina = paginador.get_page(request.GET.get("page"))
+
+    contexto = {
+        "page_obj": pagina,
+        "pedidos": pagina,
+        "q": q,
+        "estado": estado,
+        "etapa": etapa,
+        "tipo": tipo_id,
+        "estados": Pedido.ESTADO_CHOICES,
+        "etapas": Pedido.ETAPA_CHOICES,
+        "tipos": TipoDocumento.objects.order_by("nome"),
+    }
+    return render(request, "pedidos/pesquisa.html", contexto)
+
+
+@login_required
+@staff_required
+def pedido_staff_detalhe(request, pk):
+    pedido = get_object_or_404(
+        Pedido.objects.select_related("estudante__perfil", "tipo"),
+        pk=pk,
+    )
+
+    papel = papel_utilizador(request.user)
+    admin = e_admin(request.user)
+
+    if not admin and papel != Perfil.PAPEL_SECRETARIA:
+        etapa_do_papel = {
+            Perfil.PAPEL_CREDITO: Pedido.ETAPA_CREDITO,
+            Perfil.PAPEL_REGISTO: Pedido.ETAPA_REGISTO,
+        }.get(papel)
+        if pedido.etapa_actual != etapa_do_papel:
+            raise Http404("Pedido não encontrado.")
+
+    anexos = pedido.anexos.select_related("carregado_por")
+    decisoes = pedido.decisoes.select_related("decidido_por")
+    comprovativo = next(
+        (anexo for anexo in anexos if anexo.tipo == Anexo.TIPO_COMPROVATIVO),
+        None,
+    )
+
+    pode = services.pode_decidir(request.user, pedido)
+    em_tratamento = pedido.estado == Pedido.ESTADO_EM_TRATAMENTO
+    etapa_actual = pedido.etapa_actual
+
+    contexto = {
+        "pedido": pedido,
+        "anexos": anexos,
+        "decisoes": decisoes,
+        "comprovativo": comprovativo,
+        "pode_aprovar": (
+            pode
+            and em_tratamento
+            and etapa_actual in services.ETAPAS_APROVACAO
+        ),
+        "pode_indeferir": pode and em_tratamento,
+        "pode_marcar_pronto": (
+            pode
+            and em_tratamento
+            and etapa_actual == Pedido.ETAPA_SECRETARIA_FINAL
+        ),
+        "pode_marcar_entregue": (
+            pode and pedido.estado == Pedido.ESTADO_PRONTO
+        ),
+        "pode_carregar_extracto": (
+            (admin or papel == Perfil.PAPEL_CREDITO)
+            and em_tratamento
+            and etapa_actual == Pedido.ETAPA_CREDITO
+        ),
+        "mostrar_valor_credito": (
+            (admin or papel == Perfil.PAPEL_CREDITO)
+            and etapa_actual == Pedido.ETAPA_CREDITO
+        ),
+    }
+    return render(request, "pedidos/pedido_staff_detalhe.html", contexto)
+
+
+def _mensagem_erro(erro):
+    if hasattr(erro, "messages") and erro.messages:
+        return " ".join(erro.messages)
+    return str(erro)
+
+
+def _voltar_ao_detalhe(pedido):
+    return redirect("pedidos:pedido_staff_detalhe", pk=pedido.pk)
+
+
+@login_required
+@staff_required
+@require_POST
+def aprovar(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    try:
+        services.aprovar(
+            pedido,
+            request.user,
+            request.POST.get("justificacao") or "",
+        )
+    except ValidationError as erro:
+        messages.error(request, _mensagem_erro(erro))
+    else:
+        messages.success(request, "Pedido aprovado e encaminhado.")
+    return _voltar_ao_detalhe(pedido)
+
+
+@login_required
+@staff_required
+@require_POST
+def indeferir(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    try:
+        services.indeferir(
+            pedido,
+            request.user,
+            request.POST.get("motivo") or "",
+        )
+    except ValidationError as erro:
+        messages.error(request, _mensagem_erro(erro))
+    else:
+        messages.success(request, "Pedido indeferido.")
+    return _voltar_ao_detalhe(pedido)
+
+
+@login_required
+@staff_required
+@require_POST
+def marcar_pronto(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    try:
+        services.marcar_pronto(pedido, request.user)
+    except ValidationError as erro:
+        messages.error(request, _mensagem_erro(erro))
+    else:
+        messages.success(request, "Pedido marcado como pronto.")
+    return _voltar_ao_detalhe(pedido)
+
+
+@login_required
+@staff_required
+@require_POST
+def marcar_entregue(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    try:
+        services.marcar_entregue(pedido, request.user)
+    except ValidationError as erro:
+        messages.error(request, _mensagem_erro(erro))
+    else:
+        messages.success(request, "Entrega registada.")
+    return _voltar_ao_detalhe(pedido)
+
+
+@login_required
+@staff_required
+@require_POST
+def carregar_extracto(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    papel = papel_utilizador(request.user)
+
+    if not (e_admin(request.user) or papel == Perfil.PAPEL_CREDITO):
+        raise PermissionDenied(
+            "Só o controlo de crédito pode carregar extractos."
+        )
+
+    if (
+        pedido.estado != Pedido.ESTADO_EM_TRATAMENTO
+        or pedido.etapa_actual != Pedido.ETAPA_CREDITO
+    ):
+        raise Http404("Pedido não encontrado.")
+
+    ficheiro = request.FILES.get("ficheiro") or request.FILES.get("extracto")
+    if not ficheiro:
+        messages.error(request, "Escolha o ficheiro do extracto.")
+        return _voltar_ao_detalhe(pedido)
+
+    try:
+        validar_anexo(ficheiro)
+    except ValidationError as erro:
+        messages.error(request, _mensagem_erro(erro))
+        return _voltar_ao_detalhe(pedido)
+
+    Anexo.objects.create(
+        pedido=pedido,
+        tipo=Anexo.TIPO_EXTRACTO,
+        ficheiro=ficheiro,
+        nome_original=ficheiro.name,
+        visivel_ao_estudante=False,
+        carregado_por=request.user,
+    )
+    messages.success(request, "Extracto carregado com sucesso.")
+    return _voltar_ao_detalhe(pedido)

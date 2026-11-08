@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
 from contas.models import Perfil
+from pedidos import services
 from pedidos.models import Anexo, Pedido, TipoDocumento
 
 PASSWORD_DEMO = os.environ.get("DEMO_PASSWORD", "demo123")
@@ -147,26 +148,63 @@ PEDIDOS_DEMO = (
     {
         "motivo": "Pedido de demonstração — certificado normal na secretaria.",
         "tipo": "Certificado normal",
-        "estado": Pedido.ESTADO_EM_TRATAMENTO,
-        "etapa": Pedido.ETAPA_SECRETARIA_RECEPCAO,
-        "motivo_indeferimento": "",
+        "acoes": (),
     },
     {
         "motivo": "Pedido de demonstração — declaração de notas no crédito.",
         "tipo": "Declaração de notas",
-        "estado": Pedido.ESTADO_EM_TRATAMENTO,
-        "etapa": Pedido.ETAPA_CREDITO,
-        "motivo_indeferimento": "",
+        "acoes": ("aprovar_secretaria",),
     },
     {
         "motivo": "Pedido de demonstração — declaração simples indeferida.",
         "tipo": "Declaração simples",
-        "estado": Pedido.ESTADO_INDEFERIDO,
-        "etapa": Pedido.ETAPA_SECRETARIA_RECEPCAO,
-        "motivo_indeferimento": (
-            "O comprovativo de pagamento está ilegível. Submeta novamente o "
-            "pedido com um comprovativo válido."
+        "acoes": ("indeferir_secretaria",),
+    },
+    {
+        "motivo": (
+            "Pedido de demonstração — declaração de notas no registo académico."
         ),
+        "tipo": "Declaração de notas",
+        "acoes": ("aprovar_secretaria", "aprovar_credito"),
+    },
+    {
+        "motivo": (
+            "Pedido de demonstração — declaração simples aguarda assinatura."
+        ),
+        "tipo": "Declaração simples",
+        "acoes": ("aprovar_secretaria", "aprovar_credito"),
+    },
+    {
+        "motivo": (
+            "Pedido de demonstração — certificado normal pronto para "
+            "levantamento."
+        ),
+        "tipo": "Certificado normal",
+        "acoes": (
+            "aprovar_secretaria",
+            "aprovar_credito",
+            "aprovar_registo",
+            "marcar_pronto",
+        ),
+    },
+    {
+        "motivo": "Pedido de demonstração — certificado normal entregue.",
+        "tipo": "Certificado normal",
+        "acoes": (
+            "aprovar_secretaria",
+            "aprovar_credito",
+            "aprovar_registo",
+            "marcar_pronto",
+            "marcar_entregue",
+        ),
+    },
+    {
+        "motivo": (
+            "Pedido de demonstração — declaração de notas indeferida pelo "
+            "crédito."
+        ),
+        "tipo": "Declaração de notas",
+        "acoes": ("aprovar_secretaria", "indeferir_credito"),
     },
 )
 
@@ -245,6 +283,11 @@ class Command(BaseCommand):
 
     def _garantir_pedidos(self):
         estudante = User.objects.get(username="estudante1")
+        atores = {
+            "secretaria": User.objects.get(username="secretaria1"),
+            "credito": User.objects.get(username="credito1"),
+            "registo": User.objects.get(username="registo1"),
+        }
         pedidos_criados = 0
         pedidos_existentes = 0
         anexos_criados = 0
@@ -258,9 +301,6 @@ class Command(BaseCommand):
                 defaults={
                     "tipo": tipo,
                     "grau": estudante.perfil.grau,
-                    "estado": dados["estado"],
-                    "etapa_actual": dados["etapa"],
-                    "motivo_indeferimento": dados["motivo_indeferimento"],
                 },
             )
             if criado:
@@ -296,7 +336,48 @@ class Command(BaseCommand):
                 )
                 anexos_criados += 1
 
+            if criado:
+                pedido = self._executar_acoes(pedido, dados["acoes"], atores)
+
         return pedidos_criados, pedidos_existentes, anexos_criados
+
+    def _executar_acoes(self, pedido, acoes, atores):
+        for acao in acoes:
+            if acao == "aprovar_secretaria":
+                pedido = services.aprovar(pedido, atores["secretaria"])
+            elif acao == "aprovar_credito":
+                pedido = services.aprovar(pedido, atores["credito"])
+            elif acao == "aprovar_registo":
+                pedido = services.aprovar(pedido, atores["registo"])
+            elif acao == "indeferir_secretaria":
+                pedido = services.indeferir(
+                    pedido,
+                    atores["secretaria"],
+                    (
+                        "O comprovativo de pagamento está ilegível. Submeta "
+                        "novamente o pedido com um comprovativo válido."
+                    ),
+                )
+            elif acao == "indeferir_credito":
+                pedido = services.indeferir(
+                    pedido,
+                    atores["credito"],
+                    (
+                        "O valor pago não corresponde ao valor esperado para "
+                        "este documento. Submeta um novo pedido com o "
+                        "comprovativo correcto."
+                    ),
+                )
+            elif acao == "marcar_pronto":
+                pedido = services.marcar_pronto(pedido, atores["secretaria"])
+            elif acao == "marcar_entregue":
+                pedido = services.marcar_entregue(
+                    pedido,
+                    atores["secretaria"],
+                )
+            else:
+                raise ValueError(f"Acção de demonstração desconhecida: {acao}")
+        return pedido
 
     def _garantir_utilizador(self, dados):
         utilizador, criado = User.objects.get_or_create(
