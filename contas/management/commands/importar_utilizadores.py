@@ -186,9 +186,7 @@ class Command(BaseCommand):
                 if nome_curso:
                     curso, _ = Curso.objects.get_or_create(
                         nome=nome_curso,
-                        defaults={
-                            "grau": grau or Perfil.GRAU_LICENCIATURA,
-                        },
+                        grau=grau or Perfil.GRAU_LICENCIATURA,
                     )
 
                 partes_nome = nome.split()

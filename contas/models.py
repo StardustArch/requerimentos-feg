@@ -35,7 +35,7 @@ class Curso(models.Model):
         ("doutoramento", "Doutoramento"),
     )
 
-    nome = models.CharField(max_length=150, unique=True)
+    nome = models.CharField(max_length=150)
     grau = models.CharField(max_length=20, choices=GRAU_CHOICES)
     activo = models.BooleanField(default=True)
 
@@ -43,6 +43,12 @@ class Curso(models.Model):
         ordering = ("grau", "nome")
         verbose_name = "curso"
         verbose_name_plural = "cursos"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["nome", "grau"],
+                name="unique_curso_nome_por_grau",
+            ),
+        ]
 
     def __str__(self):
         return self.nome

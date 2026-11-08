@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from contas.models import Curso, Perfil
@@ -213,6 +214,8 @@ class Command(BaseCommand):
     help = "Cria os tipos de documento e as contas de demonstração."
 
     def handle(self, *args, **options):
+        call_command("carregar_cursos", stdout=self.stdout)
+
         tipos_criados = 0
         tipos_existentes = 0
         utilizadores_criados = 0
@@ -416,9 +419,10 @@ class Command(BaseCommand):
             campos_alterados.append("papel")
 
         if dados.get("curso"):
+            grau = dados.get("grau") or Perfil.GRAU_LICENCIATURA
             curso, _ = Curso.objects.get_or_create(
                 nome=dados["curso"],
-                defaults={"grau": dados.get("grau") or Perfil.GRAU_LICENCIATURA},
+                grau=grau,
             )
             if perfil.curso_id != curso.pk:
                 perfil.curso = curso

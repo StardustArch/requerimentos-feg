@@ -28,6 +28,10 @@ python manage.py runserver
 
 A aplicação fica disponível em <http://127.0.0.1:8000/>.
 
+O catálogo de cursos pode ser carregado (ou actualizado) isoladamente com
+`python manage.py carregar_cursos`. O comando é idempotente e o `seed_demo`
+também o executa.
+
 ## Variáveis de ambiente
 
 | Variável | Default | Descrição |

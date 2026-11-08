@@ -736,6 +736,46 @@ class ImportarUtilizadoresTests(TestCase):
         self.assertEqual(ana.perfil.papel, Perfil.PAPEL_ADMIN)
 
 
+class CarregarCursosTests(TestCase):
+    def test_carregar_cursos_e_idempotente_e_cria_18_cursos(self):
+        saida = StringIO()
+        call_command("carregar_cursos", stdout=saida)
+
+        self.assertIn("18 criado(s)", saida.getvalue())
+        self.assertEqual(Curso.objects.count(), 18)
+        self.assertEqual(
+            Curso.objects.filter(grau=Perfil.GRAU_LICENCIATURA).count(),
+            8,
+        )
+        self.assertEqual(
+            Curso.objects.filter(grau=Perfil.GRAU_MESTRADO).count(),
+            9,
+        )
+        self.assertEqual(
+            Curso.objects.filter(grau=Perfil.GRAU_DOUTORAMENTO).count(),
+            1,
+        )
+
+        contabilidade = Curso.objects.filter(
+            nome="Contabilidade e Auditoria"
+        )
+        self.assertEqual(contabilidade.count(), 2)
+        self.assertSetEqual(
+            set(contabilidade.values_list("grau", flat=True)),
+            {Perfil.GRAU_LICENCIATURA, Perfil.GRAU_MESTRADO},
+        )
+
+        saida = StringIO()
+        call_command("carregar_cursos", stdout=saida)
+
+        self.assertIn("0 criado(s)", saida.getvalue())
+        self.assertEqual(Curso.objects.count(), 18)
+        self.assertEqual(
+            Curso.objects.filter(nome="Contabilidade e Auditoria").count(),
+            2,
+        )
+
+
 class LoginPageGoogleTests(TestCase):
     def test_botao_google_aparece_e_preserva_o_next(self):
         next_url = reverse("home")
