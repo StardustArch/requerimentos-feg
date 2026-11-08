@@ -3,6 +3,8 @@
 from django.http import HttpResponse
 from django.urls import include, path
 
+from pedidos import views as pedidos_views
+
 from . import views
 from .permissoes import (
     admin_required,
@@ -33,5 +35,7 @@ urlpatterns = [
     path("probe/staff/", probe_staff, name="probe_staff"),
     path("probe/admin/", probe_admin, name="probe_admin"),
     path("contas/", include("contas.urls")),
+    path("pedidos/", include("pedidos.urls")),
+    path("painel/", pedidos_views.painel, name="painel"),
     path("", views.dashboard_redirect, name="home"),
 ]

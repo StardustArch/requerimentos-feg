@@ -1,6 +1,6 @@
 from functools import wraps
 
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 
 from .models import Perfil
 
@@ -33,7 +33,7 @@ def _decorador(papeis):
         @wraps(view_func)
         def wrapped(request, *args, **kwargs):
             if not _permitir(request.user, papeis):
-                return HttpResponseForbidden(
+                raise PermissionDenied(
                     "Não tem permissão para aceder a esta página."
                 )
             return view_func(request, *args, **kwargs)

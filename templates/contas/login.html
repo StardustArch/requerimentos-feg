@@ -34,7 +34,12 @@
                         Acesso de pessoal e contas de demonstração
                     </h2>
 
-                    {% if form.errors %}
+                    {% if bloqueado %}
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-shield-exclamation me-1"></i>
+                            {{ mensagem_bloqueio }}
+                        </div>
+                    {% elif form.errors %}
                         <div class="alert alert-danger" role="alert">
                             Utilizador ou palavra-passe incorretos. Tente novamente.
                         </div>

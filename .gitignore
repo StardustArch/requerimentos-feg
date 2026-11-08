@@ -20,6 +20,9 @@ db.sqlite3-journal
 staticfiles/
 media/
 
+# Cópias de segurança locais (base de dados + media)
+backups/
+
 # Ficheiros de sistema/editor
 .DS_Store
 Thumbs.db

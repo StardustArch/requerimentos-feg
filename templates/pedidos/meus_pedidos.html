@@ -24,6 +24,9 @@
     </div>
 
     {% if pedidos %}
+        <p class="text-muted mb-2">
+            {{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}
+        </p>
         <div class="table-responsive">
             <table class="table table-hover align-middle bg-white">
                 <thead>
@@ -72,6 +75,8 @@
                 </tbody>
             </table>
         </div>
+
+        {% include "_paginacao.html" %}
     {% else %}
         <div class="card">
             <div class="card-body text-center py-5">

@@ -1,14 +1,17 @@
 import os
+from datetime import timedelta
 from mimetypes import guess_type
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Avg, Count, DurationField, ExpressionWrapper, F, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from contas.models import Perfil
@@ -22,7 +25,7 @@ from contas.permissoes import (
 
 from . import services
 from .forms import NovoPedidoForm
-from .models import Anexo, Pedido, TipoDocumento
+from .models import Anexo, Decisao, Pedido, TipoDocumento
 from .validators import validar_anexo
 
 TIPOS_DE_ANEXO = (
@@ -36,6 +39,14 @@ ALIASES_ANEXOS = {
     "comprovativo": "anexo_comprovativo",
     "ficheiro_comprovativo": "anexo_comprovativo",
 }
+
+PERIODOS_PAINEL = (
+    ("30d", "Últimos 30 dias"),
+    ("mes", "Este mês"),
+    ("ano", "Este ano"),
+    ("tudo", "Tudo"),
+)
+PERIODO_PAINEL_PREDEFINIDO = "30d"
 
 
 def _tipo_activo(valor):
@@ -128,6 +139,8 @@ def novo_pedido(request):
     contexto = {
         "form": form,
         "perfil": perfil,
+        "max_anexo_mb": settings.MAX_ANEXO_MB,
+        "formatos_aceites": "PDF, JPG/JPEG ou PNG",
         **_contexto_resumo(request.user, tipo),
     }
     return render(request, "pedidos/novo_pedido.html", contexto)
@@ -156,7 +169,12 @@ def meus_pedidos(request):
         .select_related("tipo")
         .order_by("-criado_em")
     )
-    return render(request, "pedidos/meus_pedidos.html", {"pedidos": pedidos})
+    pagina = Paginator(pedidos, 25).get_page(request.GET.get("page"))
+    return render(
+        request,
+        "pedidos/meus_pedidos.html",
+        {"pedidos": pagina, "page_obj": pagina},
+    )
 
 
 @login_required
@@ -245,6 +263,11 @@ def _pedidos_na_etapa(etapa):
     )
 
 
+def _paginar(request, pedidos):
+    """Pagina uma fila, tolerando listas vazias e páginas inválidas."""
+    return Paginator(pedidos, 25).get_page(request.GET.get("page"))
+
+
 def _contagens_fila():
     return {
         "novos": Pedido.objects.filter(
@@ -325,6 +348,9 @@ def fila(request):
     else:
         raise PermissionDenied("Sem acesso à fila de trabalho.")
 
+    pagina = _paginar(request, contexto["pedidos"])
+    contexto["pedidos"] = pagina
+    contexto["page_obj"] = pagina
     return render(request, "pedidos/fila.html", contexto)
 
 
@@ -378,6 +404,180 @@ def pesquisa(request):
         "tipos": TipoDocumento.objects.order_by("nome"),
     }
     return render(request, "pedidos/pesquisa.html", contexto)
+
+
+def _inicio_periodo_painel(periodo):
+    agora = timezone.now()
+    if periodo == "30d":
+        return agora - timedelta(days=30)
+    if periodo == "mes":
+        local = timezone.localtime(agora)
+        return local.replace(
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+    if periodo == "ano":
+        local = timezone.localtime(agora)
+        return local.replace(
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+    return None
+
+
+def _dados_grafico_estados(contagens, escolhas):
+    return {
+        "labels": [rotulo for _, rotulo in escolhas],
+        "valores": [contagens.get(valor, 0) for valor, _ in escolhas],
+    }
+
+
+@login_required
+@staff_required
+def painel(request):
+    """Indicadores agregados dos pedidos, sem dados pessoais dos estudantes."""
+
+    if not (
+        e_admin(request.user)
+        or papel_utilizador(request.user) == Perfil.PAPEL_SECRETARIA
+    ):
+        raise PermissionDenied(
+            "O painel de indicadores é reservado à secretaria e à "
+            "administração."
+        )
+
+    periodo = request.GET.get("periodo") or PERIODO_PAINEL_PREDEFINIDO
+    if periodo not in dict(PERIODOS_PAINEL):
+        periodo = PERIODO_PAINEL_PREDEFINIDO
+
+    inicio = _inicio_periodo_painel(periodo)
+    pedidos = Pedido.objects.all()
+    if inicio is not None:
+        pedidos = pedidos.filter(criado_em__gte=inicio)
+
+    contagens_estado = {
+        linha["estado"]: linha["total"]
+        for linha in pedidos.values("estado").annotate(total=Count("pk"))
+    }
+    cartoes = {
+        "total": pedidos.count(),
+        "em_tratamento": contagens_estado.get(
+            Pedido.ESTADO_EM_TRATAMENTO,
+            0,
+        ),
+        "prontos": contagens_estado.get(Pedido.ESTADO_PRONTO, 0),
+        "entregues": contagens_estado.get(Pedido.ESTADO_ENTREGUE, 0),
+        "indeferidos": contagens_estado.get(
+            Pedido.ESTADO_INDEFERIDO,
+            0,
+        ),
+    }
+
+    por_tipo = list(
+        pedidos.values("tipo__nome")
+        .annotate(total=Count("pk"))
+        .order_by("-total", "tipo__nome")
+    )
+    grafico_tipos = {
+        "labels": [linha["tipo__nome"] for linha in por_tipo],
+        "valores": [linha["total"] for linha in por_tipo],
+    }
+    grafico_estados = _dados_grafico_estados(
+        contagens_estado,
+        Pedido.ESTADO_CHOICES,
+    )
+
+    contagens_fila_etapa = {
+        linha["etapa_actual"]: linha["total"]
+        for linha in Pedido.objects.filter(
+            estado=Pedido.ESTADO_EM_TRATAMENTO,
+        )
+        .values("etapa_actual")
+        .annotate(total=Count("pk"))
+    }
+    grafico_fila = _dados_grafico_estados(
+        contagens_fila_etapa,
+        Pedido.ETAPA_CHOICES,
+    )
+
+    indeferidos = Decisao.objects.filter(
+        resultado=Decisao.RESULTADO_INDEFERIDO,
+    )
+    if inicio is not None:
+        indeferidos = indeferidos.filter(data_hora__gte=inicio)
+    contagens_indeferidos = {
+        linha["etapa"]: linha["total"]
+        for linha in indeferidos.values("etapa").annotate(total=Count("pk"))
+    }
+    grafico_indeferidos = _dados_grafico_estados(
+        contagens_indeferidos,
+        Pedido.ETAPA_CHOICES,
+    )
+
+    duracao = ExpressionWrapper(
+        F("pronto_em") - F("criado_em"),
+        output_field=DurationField(),
+    )
+    concluidos = Pedido.objects.filter(
+        estado__in=(Pedido.ESTADO_PRONTO, Pedido.ESTADO_ENTREGUE),
+        pronto_em__isnull=False,
+    )
+    if inicio is not None:
+        concluidos = concluidos.filter(
+            Q(pronto_em__gte=inicio) | Q(entregue_em__gte=inicio)
+        )
+    medias = {
+        linha["tipo_id"]: linha["media"]
+        for linha in concluidos.values("tipo_id").annotate(media=Avg(duracao))
+    }
+
+    tempo_medio = []
+    for tipo in TipoDocumento.objects.order_by("nome"):
+        media = medias.get(tipo.pk)
+        media_dias = (
+            round(media.total_seconds() / 86400, 1)
+            if media is not None
+            else None
+        )
+        prazo = tipo.prazo_estimado_dias
+        tempo_medio.append(
+            {
+                "tipo": tipo,
+                "media_dias": media_dias,
+                "prazo_dias": prazo,
+                "excede": bool(
+                    media_dias is not None
+                    and prazo
+                    and media_dias > prazo
+                ),
+            }
+        )
+
+    mais_antigos = (
+        Pedido.objects.filter(estado=Pedido.ESTADO_EM_TRATAMENTO)
+        .select_related("tipo")
+        .order_by("criado_em")[:10]
+    )
+
+    contexto = {
+        "periodo": periodo,
+        "periodos": PERIODOS_PAINEL,
+        "cartoes": cartoes,
+        "grafico_tipos": grafico_tipos,
+        "grafico_estados": grafico_estados,
+        "grafico_fila": grafico_fila,
+        "grafico_indeferidos": grafico_indeferidos,
+        "tempo_medio": tempo_medio,
+        "mais_antigos": mais_antigos,
+    }
+    return render(request, "pedidos/painel.html", contexto)
 
 
 @login_required

@@ -29,6 +29,12 @@
                         obrigatórios.
                     </p>
 
+                    <div class="alert alert-info py-2 small" role="note">
+                        <i class="bi bi-paperclip me-1"></i>
+                        Ficheiros aceites: <strong>{{ formatos_aceites }}</strong>,
+                        até <strong>{{ max_anexo_mb }} MB</strong> por ficheiro.
+                    </div>
+
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger" role="alert">
                             {{ form.non_field_errors }}
@@ -79,7 +85,9 @@
                                 {{ form.anexo_bi.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.anexo_bi }}
-                            <div class="form-text">PDF, JPG ou PNG.</div>
+                            <div class="form-text">
+                                {{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.
+                            </div>
                             {% for erro in form.anexo_bi.errors %}
                                 <div class="invalid-feedback d-block">{{ erro }}</div>
                             {% endfor %}
@@ -90,7 +98,9 @@
                                 {{ form.anexo_comprovativo.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.anexo_comprovativo }}
-                            <div class="form-text">PDF, JPG ou PNG.</div>
+                            <div class="form-text">
+                                {{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.
+                            </div>
                             {% for erro in form.anexo_comprovativo.errors %}
                                 <div class="invalid-feedback d-block">{{ erro }}</div>
                             {% endfor %}

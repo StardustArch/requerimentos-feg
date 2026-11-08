@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Painel de indicadores · Pedidos de Documentos · UCM-FEG{% endblock %}
+
+{% block page_title %}Painel de indicadores{% endblock %}
+
+{% block breadcrumb %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Painel</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="h4 mb-1">
+                <i class="bi bi-bar-chart-line"></i>Indicadores dos pedidos
+            </h2>
+            <p class="text-muted mb-0">
+                Dados agregados, sem identificação dos estudantes.
+            </p>
+        </div>
+
+        <form method="get" class="d-flex align-items-end gap-2">
+            <div>
+                <label for="id_periodo" class="form-label mb-1">Período</label>
+                <select name="periodo" id="id_periodo" class="form-select">
+                    {% for valor, rotulo in periodos %}
+                        <option value="{{ valor }}" {% if valor == periodo %}selected{% endif %}>
+                            {{ rotulo }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel me-1"></i>Aplicar
+            </button>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase small mb-1">Total no período</p>
+                    <p class="display-6 fw-semibold mb-0">{{ cartoes.total }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase small mb-1">Em tratamento</p>
+                    <p class="display-6 fw-semibold mb-0 text-info">{{ cartoes.em_tratamento }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase small mb-1">Prontos</p>
+                    <p class="display-6 fw-semibold mb-0 text-success">{{ cartoes.prontos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase small mb-1">Entregues</p>
+                    <p class="display-6 fw-semibold mb-0 text-secondary">{{ cartoes.entregues }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted text-uppercase small mb-1">Indeferidos</p>
+                    <p class="display-6 fw-semibold mb-0 text-danger">{{ cartoes.indeferidos }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-xl-7">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Pedidos por tipo de documento
+                </div>
+                <div class="card-body">
+                    <canvas id="grafico-tipos" height="230"
+                            aria-label="Pedidos por tipo de documento"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-5">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Pedidos por estado
+                </div>
+                <div class="card-body">
+                    <canvas id="grafico-estados" height="230"
+                            aria-label="Pedidos por estado"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Fila actual por etapa
+                    <span class="text-muted fw-normal small">(só em tratamento)</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="grafico-fila" height="230"
+                            aria-label="Fila actual por etapa"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Indeferimentos por etapa
+                </div>
+                <div class="card-body">
+                    <canvas id="grafico-indeferidos" height="230"
+                            aria-label="Indeferimentos por etapa"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-7">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Tempo médio de processamento por tipo
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Tipo de documento</th>
+                                <th scope="col" class="text-end">Tempo médio</th>
+                                <th scope="col" class="text-end">Prazo estimado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for linha in tempo_medio %}
+                                <tr {% if linha.excede %}class="table-danger"{% endif %}>
+                                    <td>{{ linha.tipo.nome }}</td>
+                                    <td class="text-end">
+                                        {% if linha.media_dias is not None %}
+                                            {{ linha.media_dias|floatformat:1 }} dia{{ linha.media_dias|pluralize:"s" }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if linha.prazo_dias %}
+                                            {{ linha.prazo_dias }} dia{{ linha.prazo_dias|pluralize:"s" }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white small text-muted">
+                    A vermelho quando o tempo médio ultrapassa o prazo estimado.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">
+                    Há mais tempo em tratamento
+                </div>
+                {% if mais_antigos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Protocolo</th>
+                                    <th scope="col">Tipo</th>
+                                    <th scope="col">Etapa</th>
+                                    <th scope="col" class="text-end">Dias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pedido in mais_antigos %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ pedido.protocolo }}</td>
+                                        <td>{{ pedido.tipo.nome }}</td>
+                                        <td>{{ pedido.get_etapa_actual_display }}</td>
+                                        <td class="text-end">{{ pedido.dias_na_fila }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card-body text-center text-muted py-5">
+                        <i class="bi bi-check2-circle display-4"></i>
+                        <p class="mt-3 mb-0">Não há pedidos em tratamento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+    {{ grafico_tipos|json_script:"dados-tipos" }}
+    {{ grafico_estados|json_script:"dados-estados" }}
+    {{ grafico_fila|json_script:"dados-fila" }}
+    {{ grafico_indeferidos|json_script:"dados-indeferidos" }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function ler(id) {
+                return JSON.parse(document.getElementById(id).textContent);
+            }
+
+            function barras(id, dados, cor, horizontal) {
+                return new Chart(document.getElementById(id), {
+                    type: "bar",
+                    data: {
+                        labels: dados.labels,
+                        datasets: [{
+                            label: "Pedidos",
+                            data: dados.valores,
+                            backgroundColor: cor,
+                            borderRadius: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: horizontal ? "y" : "x",
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            barras("grafico-tipos", ler("dados-tipos"), "#3b8de0", false);
+            barras("grafico-fila", ler("dados-fila"), "#2d2a8c", true);
+            barras(
+                "grafico-indeferidos",
+                ler("dados-indeferidos"),
+                "#b02a37",
+                false
+            );
+
+            new Chart(document.getElementById("grafico-estados"), {
+                type: "doughnut",
+                data: {
+                    labels: ler("dados-estados").labels,
+                    datasets: [{
+                        data: ler("dados-estados").valores,
+                        backgroundColor: [
+                            "#0dcaf0",
+                            "#dc3545",
+                            "#198754",
+                            "#6c757d"
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "bottom" } }
+                }
+            });
+        });
+    </script>
+{% endblock %}

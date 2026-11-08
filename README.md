@@ -4,8 +4,9 @@ Sistema de pedidos de documentos para a Faculdade de Economia e Gestão da
 Universidade Católica de Moçambique. Os estudantes submetem pedidos e os
 documentos são entregues fisicamente na secretaria.
 
-Esta é a **Fase 3**: filas de trabalho por departamento, decisões, entrega e
-notificações por email ao estudante.
+Esta é a **Fase 4**: painel de indicadores, limite de tentativas de login,
+backups, páginas de erro temáticas, paginação, limites de anexos e verificação
+de implantação.
 
 ## Requisitos
 
@@ -57,6 +58,16 @@ também o executa.
 | `DEFAULT_FROM_EMAIL` | `Pedidos UCM-FEG <nao-responder@ucm.ac.mz>` | Remetente das notificações. |
 | `LEVANTAMENTO_INFO` | `na Secretaria da Faculdade` | Texto do email de "pronto" que indica onde levantar o documento. |
 | `ATENDIMENTO_PRESENCIAL_INFO` | `Dirige-te à Secretaria da Faculdade e faz o pedido presencialmente.` | Texto mostrado quando o curso não aparece na lista ou não é possível identificar o número de estudante. |
+| `BACKUP_DIR` | `backups/` (dentro do projeto) | Pasta onde o comando `fazer_backup` guarda os ZIPs. |
+| `CACHE_BACKEND` | `django.core.cache.backends.locmem.LocMemCache` | Backend de cache usado pelo throttling de login. |
+| `CACHE_LOCATION` | `login-throttle` | Identificador da cache de throttling. |
+| `LOGIN_MAX_FALHAS_USERNAME` | `5` | Falhas máximas por username na janela antes de bloquear. |
+| `LOGIN_MAX_FALHAS_IP` | `20` | Falhas máximas por IP na janela antes de bloquear. |
+| `LOGIN_JANELA_MINUTOS` | `15` | Janela de tempo (minutos) para contagem de falhas e duração do bloqueio. |
+| `DJANGO_HSTS_SECONDS` | `3600` | Duração do cabeçalho HSTS em produção. |
+| `DJANGO_HSTS_INCLUDE_SUBDOMAINS` | `True` | Inclui subdomínios no HSTS. |
+| `DJANGO_HSTS_PRELOAD` | `True` | Adiciona o domínio à lista de pré-carregamento HSTS. |
+| `DJANGO_SECURE_SSL_REDIRECT` | `True` | Redireciona HTTP para HTTPS em produção. |
 
 Exemplo para produção:
 
@@ -86,6 +97,9 @@ export ATENDIMENTO_PRESENCIAL_INFO='Dirige-te à Secretaria da Faculdade e faz o
   `ALLOWED_EMAIL_DOMAINS` (por omissão `ucm.ac.mz` e
   `estudante.ucm.ac.mz`). A validação do domínio é feita no servidor.
 - **Login clássico**: para pessoal da faculdade e contas de demonstração.
+  - É aplicado um limite de tentativas: **5 falhas por username** ou **20 falhas por IP** numa janela de 15 minutos bloqueiam novas tentativas por 15 minutos. Um login bem-sucedido limpa o contador do username.
+  - O Google OAuth não é afectado por este limite.
+  - As palavras-passe nunca são escritas nos logs.
 
 No Google Cloud Console, configure o URI de redireccionamento autorizado:
 
@@ -209,6 +223,83 @@ extraído do início da parte local do email institucional (por exemplo,
 por um número são ignoradas e reportadas como erro; o resto da importação
 continua. O comando é idempotente e só gera palavras-passe para contas novas.
 Use `--sem-password` para contas que entram apenas por Google.
+
+## Backups
+
+O comando `fazer_backup` cria um ZIP com uma cópia consistente da base de dados
+SQLite (via `sqlite3.Connection.backup`) e com a pasta `media/` (anexos e
+extractos):
+
+```bash
+python manage.py fazer_backup           # guarda backups/backup-YYYYMMdd-HHMMSS.zip
+python manage.py fazer_backup --manter 7   # mantém apenas os 7 mais recentes
+```
+
+A cada execução o comando imprime o nome do ficheiro, o tamanho e quantos
+backups permanecem, e remove automaticamente os mais antigos além de `--manter`
+(por omissão 14).
+
+Em produção, agende execuções diárias. Exemplo de `crontab`:
+
+```crontab
+0 2 * * * cd /home/suaconta/requerimentos && /caminho/para/.venv/bin/python manage.py fazer_backup --manter 14 >> /caminho/para/logs/backup.log 2>&1
+```
+
+No PythonAnywhere, use a tarefa "Scheduled Task" diária com o comando acima,
+ajustando o caminho do virtualenv e do projeto. Não se esqueça de definir
+`BACKUP_DIR` para uma pasta fora do código-fonte (ex. `/home/suaconta/backups`).
+
+### Restauro
+
+O ZIP contém `db.sqlite3` e `media/`. Para restaurar:
+
+1. Descompacte o backup: `unzip backups/backup-....zip -d restauro/`
+2. Substitua a base de dados: `cp restauro/db.sqlite3 db.sqlite3`
+3. Restaure os ficheiros: `cp -r restauro/media/* media/`
+4. Reinicie a aplicação.
+
+O ficheiro `backups/` está no `.gitignore` e nunca deve ser commitado.
+
+## Painel de indicadores
+
+O painel fica em `/painel/` e é acessível apenas à Secretaria e ao
+Administrador. Apresenta:
+
+- Cartões com o total de pedidos no período, separados por estado actual.
+- Gráficos (Chart.js, renderizados com `json_script`) de pedidos por estado,
+  indeferimentos ao longo do tempo e tempo médio de tratamento por tipo de
+  documento.
+- Tabelas com a fila actual e os 10 tipos com maior tempo médio de tratamento.
+
+O período é filtrado por parâmetro GET `periodo` (ex. `30d`, `90d`, `tudo`);
+valores inválidos são ignorados sem erro. O painel nunca exibe nomes, emails ou
+números de estudante.
+
+## Páginas de erro
+
+As respostas 403, 404 e 500 usam templates com o tema visual da UCM-FEG
+(`ucm-topbar`) e um link para voltar à página inicial. A página 404 não revela
+a existência de recursos a que o utilizador não tem acesso.
+
+## Paginação e limites de anexos
+
+- `Meus pedidos` e a `Fila` são paginados de 25 em 25.
+- O formulário de novo pedido mostra o tamanho máximo de anexo (`MAX_ANEXO_MB`)
+  e os tipos de ficheiro aceites (PDF, JPG/JPEG, PNG).
+
+## Implantação (`check --deploy`)
+
+Em produção defina `DJANGO_DEBUG=False` e as variáveis de ambiente acima. Execute:
+
+```bash
+DJANGO_DEBUG=False ... python manage.py check --deploy
+```
+
+Deve passar sem avisos. Decisões de implantação ainda pendentes:
+
+- Escolher o backend de cache em produção (por omissão usa `LocMemCache`, que não é partilhada entre processos; em servidores com vários workers prefira Redis/Memcached).
+- Definir `BACKUP_DIR` para um volume/persistente separado do código-fonte.
+- Confirmar o valor de `DJANGO_HSTS_SECONDS` antes de activar `PRELOAD` (um domínio pré-carregado é difícil de remover).
 
 ## Testes
 

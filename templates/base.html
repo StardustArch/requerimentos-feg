@@ -97,6 +97,11 @@
                                            {% if vista == 'pedidos:pesquisa' %}aria-current="page"{% endif %}
                                            href="{% url 'pedidos:pesquisa' %}">Pesquisa</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if vista == 'painel' %}active{% endif %}"
+                                           {% if vista == 'painel' %}aria-current="page"{% endif %}
+                                           href="{% url 'painel' %}">Painel</a>
+                                    </li>
                                 {% endif %}
                             {% endif %}
                         </ul>

@@ -12,6 +12,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _env_bool(nome, default=False):
+    valor = os.environ.get(nome)
+    if valor is None:
+        return default
+    return valor.strip().lower() in {"1", "true", "yes", "on"}
+
+
 # ---------------------------------------------------------------------------
 # Core / security
 # ---------------------------------------------------------------------------
@@ -35,11 +42,27 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+# Cabeçalhos de segurança aplicados em todos os ambientes. O HSTS fica
+# desligado em desenvolvimento e usa um valor baixo (1 hora) em produção; pode
+# ser aumentado, ou desligado, através de DJANGO_HSTS_SECONDS.
+X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+SECURE_HSTS_SECONDS = int(
+    os.environ.get("DJANGO_HSTS_SECONDS", "0" if DEBUG else "3600")
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool(
+    "DJANGO_HSTS_INCLUDE_SUBDOMAINS",
+    not DEBUG,
+)
+SECURE_HSTS_PRELOAD = _env_bool("DJANGO_HSTS_PRELOAD", not DEBUG)
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +136,37 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+
+# ---------------------------------------------------------------------------
+# Cache e limite de tentativas de login
+# ---------------------------------------------------------------------------
+
+# LocMemCache chega para uma única instância. Em vários processos/servidores,
+# configure um backend partilhado (por exemplo Redis ou Memcached) através de
+# CACHE_BACKEND e CACHE_LOCATION.
+CACHES = {
+    "default": {
+        "BACKEND": os.environ.get(
+            "CACHE_BACKEND",
+            "django.core.cache.backends.locmem.LocMemCache",
+        ),
+        "LOCATION": os.environ.get("CACHE_LOCATION", "requerimentos"),
+    }
+}
+
+LOGIN_MAX_TENTATIVAS_USERNAME = int(
+    os.environ.get("LOGIN_MAX_TENTATIVAS_USERNAME", "5")
+)
+LOGIN_MAX_TENTATIVAS_IP = int(os.environ.get("LOGIN_MAX_TENTATIVAS_IP", "20"))
+LOGIN_JANELA_MINUTOS = int(os.environ.get("LOGIN_JANELA_MINUTOS", "15"))
+
+
+# ---------------------------------------------------------------------------
+# Cópias de segurança
+# ---------------------------------------------------------------------------
+
+BACKUP_DIR = Path(os.environ.get("BACKUP_DIR", BASE_DIR / "backups"))
 
 
 # ---------------------------------------------------------------------------
