@@ -15,8 +15,10 @@ from contas.models import Perfil
 class Command(BaseCommand):
     help = (
         "Cria ou actualiza utilizadores a partir de um CSV com as colunas "
-        "nome, email e papel."
+        "nome, email, papel, numero_estudante, curso e grau."
     )
+
+    COLUNAS_OBRIGATORIAS = {"nome", "email", "papel"}
 
     def add_arguments(self, parser):
         parser.add_argument("ficheiro", help="Caminho para o ficheiro CSV.")
@@ -57,7 +59,7 @@ class Command(BaseCommand):
                     passwords.append((email, password))
                 criados += 1
             else:
-                if options["sem_password"]:
+                if options["sem_password"] and utilizador.has_usable_password():
                     utilizador.set_unusable_password()
                 actualizados += 1
 
@@ -67,9 +69,21 @@ class Command(BaseCommand):
             utilizador.save()
 
             perfil, _ = Perfil.objects.get_or_create(user=utilizador)
-            if perfil.papel != linha["papel"]:
-                perfil.papel = linha["papel"]
-                perfil.save(update_fields=["papel"])
+            campos_alterados = []
+
+            for campo in (
+                "papel",
+                "numero_estudante",
+                "curso",
+                "grau",
+            ):
+                valor = linha[campo]
+                if getattr(perfil, campo) != valor:
+                    setattr(perfil, campo, valor)
+                    campos_alterados.append(campo)
+
+            if campos_alterados:
+                perfil.save(update_fields=campos_alterados)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -90,6 +104,7 @@ class Command(BaseCommand):
 
     def _ler_e_validar(self, caminho):
         papeis_validos = {papel for papel, _ in Perfil.PAPEL_CHOICES}
+        graus_validos = {grau for grau, _ in Perfil.GRAU_CHOICES}
         linhas = []
 
         with caminho.open(encoding="utf-8-sig", newline="") as ficheiro:
@@ -98,7 +113,7 @@ class Command(BaseCommand):
                 (coluna or "").strip().lower()
                 for coluna in (leitor.fieldnames or [])
             }
-            em_falta = {"nome", "email", "papel"} - colunas
+            em_falta = self.COLUNAS_OBRIGATORIAS - colunas
             if em_falta:
                 raise CommandError(
                     "O CSV tem de conter as colunas: "
@@ -113,6 +128,9 @@ class Command(BaseCommand):
                 nome = registo.get("nome", "")
                 email = registo.get("email", "").lower()
                 papel = registo.get("papel", "").lower()
+                numero_estudante = registo.get("numero_estudante") or None
+                curso = registo.get("curso") or None
+                grau = registo.get("grau", "").lower() or None
 
                 if not nome:
                     raise CommandError(f"Linha {numero}: o nome está vazio.")
@@ -136,11 +154,20 @@ class Command(BaseCommand):
                         "Use um de: " + ", ".join(sorted(papeis_validos))
                     )
 
+                if grau and grau not in graus_validos:
+                    raise CommandError(
+                        f"Linha {numero}: grau inválido ({grau!r}). "
+                        "Use um de: " + ", ".join(sorted(graus_validos))
+                    )
+
                 partes_nome = nome.split()
                 linhas.append(
                     {
                         "email": email,
                         "papel": papel,
+                        "numero_estudante": numero_estudante,
+                        "curso": curso,
+                        "grau": grau,
                         "first_name": partes_nome[0],
                         "last_name": " ".join(partes_nome[1:]),
                     }

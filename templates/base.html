@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Manutenção UCM-FEG{% endblock %}</title>
+    <title>{% block title %}Pedidos de Documentos · UCM-FEG{% endblock %}</title>
 
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
@@ -17,7 +17,7 @@
         <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
             <a class="d-flex align-items-center gap-2 text-white text-decoration-none" href="{% url 'home' %}">
                 <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" onerror="this.style.display='none';">
-                <span class="brand-title">Manutenção de Equipamentos · UCM-FEG</span>
+                <span class="brand-title">Pedidos de Documentos · UCM-FEG</span>
             </a>
 
             {% if request.user.is_authenticated %}
@@ -74,35 +74,32 @@
                                    {% if vista == 'home' %}aria-current="page"{% endif %}
                                    href="{% url 'home' %}">Início</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if vista == 'equipamentos:equipamentos_lista' or vista == 'equipamentos:equipamento_detalhe' or vista == 'equipamentos:etiquetas' %}active{% endif %}"
-                                   {% if vista == 'equipamentos:equipamentos_lista' or vista == 'equipamentos:equipamento_detalhe' or vista == 'equipamentos:etiquetas' %}aria-current="page"{% endif %}
-                                   href="{% url 'equipamentos:equipamentos_lista' %}">Inventário</a>
-                            </li>
-                            {% if request.user.is_superuser or request.user.perfil.papel == "tecnico" or request.user.perfil.papel == "admin" %}
+                            {% if request.user.perfil.papel == "secretaria" %}
                                 <li class="nav-item">
-                                    <a class="nav-link {% if vista == 'equipamentos:avarias_lista' or vista == 'equipamentos:avaria_detalhe' %}active{% endif %}"
-                                       {% if vista == 'equipamentos:avarias_lista' or vista == 'equipamentos:avaria_detalhe' %}aria-current="page"{% endif %}
-                                       href="{% url 'equipamentos:avarias_lista' %}">Avarias</a>
+                                    <span class="nav-link disabled">Área da Secretaria</span>
                                 </li>
+                            {% elif request.user.perfil.papel == "credito" %}
                                 <li class="nav-item">
-                                    <a class="nav-link {% if vista == 'equipamentos:dashboard' %}active{% endif %}"
-                                       {% if vista == 'equipamentos:dashboard' %}aria-current="page"{% endif %}
-                                       href="{% url 'equipamentos:dashboard' %}">Dashboard</a>
+                                    <span class="nav-link disabled">Controlo de Crédito</span>
+                                </li>
+                            {% elif request.user.perfil.papel == "registo" %}
+                                <li class="nav-item">
+                                    <span class="nav-link disabled">Registo Académico</span>
+                                </li>
+                            {% elif request.user.perfil.papel == "admin" or request.user.is_superuser %}
+                                <li class="nav-item">
+                                    <span class="nav-link disabled">Administração</span>
                                 </li>
                             {% endif %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if vista == 'equipamentos:reportar_avaria' or vista == 'equipamentos:reportar_avaria_equipamento' %}active{% endif %}"
-                                   {% if vista == 'equipamentos:reportar_avaria' or vista == 'equipamentos:reportar_avaria_equipamento' %}aria-current="page"{% endif %}
-                                   href="{% url 'equipamentos:reportar_avaria' %}">Reportar avaria</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {% if vista == 'equipamentos:minhas_avarias' %}active{% endif %}"
-                                   {% if vista == 'equipamentos:minhas_avarias' %}aria-current="page"{% endif %}
-                                   href="{% url 'equipamentos:minhas_avarias' %}">Minhas avarias</a>
-                            </li>
                         </ul>
                     {% endwith %}
+
+                    <form action="{% url 'contas:logout' %}" method="post" class="d-flex m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-light">
+                            <i class="bi bi-box-arrow-right me-1"></i>Terminar sessão
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
@@ -111,7 +108,7 @@
     {% block page_header %}
         <header class="ucm-page-header">
             <div class="container">
-                <h1>{% block page_title %}Manutenção UCM-FEG{% endblock %}</h1>
+                <h1>{% block page_title %}Pedidos de Documentos · UCM-FEG{% endblock %}</h1>
                 {% block breadcrumb %}{% endblock %}
             </div>
         </header>

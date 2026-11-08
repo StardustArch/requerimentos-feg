@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Início · Pedidos de Documentos · UCM-FEG{% endblock %}
+
+{% block page_title %}Início{% endblock %}
+
+{% block breadcrumb %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">Início</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title h4">
+                        <i class="bi bi-file-earmark-text"></i>Bem-vindo ao Sistema de Pedidos de Documentos
+                    </h2>
+                    <p class="card-text mb-1">
+                        Universidade Católica de Moçambique – Faculdade de Economia e Gestão.
+                    </p>
+                    {% if perfil %}
+                        <span class="badge text-bg-primary">{{ perfil.get_papel_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if perfil.papel == "estudante" %}
+            <div class="col-12">
+                <h2 class="h5 text-uppercase text-muted mb-0">Área do estudante</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-file-plus"></i>Pedir documento
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Escolhe o tipo de documento, confirma os dados e acompanha o
+                            valor a pagar.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Brevemente</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-list-check"></i>Os meus pedidos
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Consulta o estado dos pedidos e a indicação para levantamento
+                            na secretaria.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Brevemente</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-person-vcard"></i>Dados académicos
+                        </h3>
+                        <dl class="row small mb-3">
+                            <dt class="col-5">Número</dt>
+                            <dd class="col-7">{{ perfil.numero_estudante|default:"—" }}</dd>
+                            <dt class="col-5">Curso</dt>
+                            <dd class="col-7">{{ perfil.curso|default:"—" }}</dd>
+                            <dt class="col-5">Grau</dt>
+                            <dd class="col-7">{{ perfil.get_grau_display|default:"—" }}</dd>
+                        </dl>
+                        <a href="{% url 'contas:completar_perfil' %}" class="btn btn-outline-primary w-100 mt-auto">
+                            Actualizar dados
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% elif perfil.papel == "secretaria" %}
+            <div class="col-12">
+                <h2 class="h5 text-uppercase text-muted mb-0">Área da Secretaria</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-inbox"></i>Pedidos recebidos
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Acompanha os pedidos dos estudantes e confirma os pagamentos.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-bag-check"></i>Entrega de documentos
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Regista a entrega física dos documentos na secretaria.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                    </div>
+                </div>
+            </div>
+        {% elif perfil.papel == "credito" %}
+            <div class="col-12">
+                <h2 class="h5 text-uppercase text-muted mb-0">Área de Controlo de Crédito</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-cash-coin"></i>Validação de crédito
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Confirma os pagamentos e actualiza o estado financeiro dos
+                            pedidos.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                    </div>
+                </div>
+            </div>
+        {% elif perfil.papel == "registo" %}
+            <div class="col-12">
+                <h2 class="h5 text-uppercase text-muted mb-0">Área de Registo Académico</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-mortarboard"></i>Validação académica
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Valida os pedidos que exigem confirmação do percurso académico.
+                        </p>
+                        <span class="badge text-bg-secondary align-self-start">Em preparação</span>
+                    </div>
+                </div>
+            </div>
+        {% elif perfil.papel == "admin" or request.user.is_superuser %}
+            <div class="col-12">
+                <h2 class="h5 text-uppercase text-muted mb-0">Área de Administração</h2>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-gear"></i>Gestão do sistema
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Configura os tipos de documento, taxas e prazos de atendimento.
+                        </p>
+                        <a href="{% url 'admin:index' %}" class="btn btn-outline-primary w-100 mt-auto">
+                            Abrir administração
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">
+                            <i class="bi bi-people"></i>Contas e perfis
+                        </h3>
+                        <p class="card-text flex-grow-1">
+                            Consulta e actualiza os utilizadores e os seus papéis.
+                        </p>
+                        <a href="{% url 'admin:contas_perfil_changelist' %}" class="btn btn-outline-primary w-100 mt-auto">
+                            Gerir perfis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
