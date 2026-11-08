@@ -52,6 +52,7 @@ A aplicação fica disponível em <http://127.0.0.1:8000/>.
 | `EMAIL_HOST_PASSWORD` | vazio | Palavra-passe do servidor SMTP. |
 | `DEFAULT_FROM_EMAIL` | `Pedidos UCM-FEG <nao-responder@ucm.ac.mz>` | Remetente das notificações. |
 | `LEVANTAMENTO_INFO` | `na Secretaria da Faculdade` | Texto do email de "pronto" que indica onde levantar o documento. |
+| `ATENDIMENTO_PRESENCIAL_INFO` | `Dirige-te à Secretaria da Faculdade e faz o pedido presencialmente.` | Texto mostrado quando o curso não aparece na lista ou não é possível identificar o número de estudante. |
 
 Exemplo para produção:
 
@@ -72,6 +73,7 @@ export EMAIL_HOST_USER='requerimentos@ucm.ac.mz'
 export EMAIL_HOST_PASSWORD='...'
 export DEFAULT_FROM_EMAIL='Pedidos UCM-FEG <requerimentos@ucm.ac.mz>'
 export LEVANTAMENTO_INFO='na Secretaria da Faculdade'
+export ATENDIMENTO_PRESENCIAL_INFO='Dirige-te à Secretaria da Faculdade e faz o pedido presencialmente.'
 ```
 
 ## Login
@@ -132,9 +134,10 @@ Criadas por `python manage.py seed_demo` (idempotente):
 | `registo1` | Registo Académico | `demo123` |
 | `estudante1` | Estudante | `demo123` |
 
-A conta `estudante1` tem número de estudante, curso e grau preenchidos. Se
-`DEMO_PASSWORD` não for definida, o comando mostra um aviso por estar a usar a
-palavra-passe de demonstração.
+A conta `estudante1` usa o email `701234567@example.com`; o número de
+estudante (`701234567`) é extraído automaticamente do email. Tem ainda curso e
+grau preenchidos. Se `DEMO_PASSWORD` não for definida, o comando mostra um aviso
+por estar a usar a palavra-passe de demonstração.
 
 O `seed_demo` também cria oito pedidos de exemplo para `estudante1`, um em cada
 fase do fluxo (secretaria, crédito, registo, secretaria final, pronto e
@@ -195,9 +198,13 @@ de **cópia de segurança regular**, em conjunto com a base de dados.
 python manage.py importar_utilizadores caminho/para/utilizadores.csv
 ```
 
-O CSV deve ter as colunas `nome,email,papel` e pode incluir
-`numero_estudante,curso,grau`. O comando é idempotente e só gera palavras-passe
-para contas novas. Use `--sem-password` para contas que entram apenas por Google.
+O CSV deve ter as colunas `nome,email,papel` e pode incluir `curso,grau`. Não
+existe coluna de número de estudante: para estudantes, o número é sempre
+extraído do início da parte local do email institucional (por exemplo,
+`701234567@estudante.ucm.ac.mz`). Linhas de estudantes cujo email não comece
+por um número são ignoradas e reportadas como erro; o resto da importação
+continua. O comando é idempotente e só gera palavras-passe para contas novas.
+Use `--sem-password` para contas que entram apenas por Google.
 
 ## Testes
 

@@ -1,26 +1,14 @@
 from django import forms
 
-from .models import Perfil
+from .models import Curso, Perfil
 
 
 class CompletarPerfilForm(forms.ModelForm):
     class Meta:
         model = Perfil
-        fields = ("grau", "curso", "numero_estudante", "telefone")
+        fields = ("curso", "telefone")
         widgets = {
-            "grau": forms.Select(attrs={"class": "form-select"}),
-            "curso": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Ex.: Informática de Gestão",
-                }
-            ),
-            "numero_estudante": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Ex.: 2023001234",
-                }
-            ),
+            "curso": forms.Select(attrs={"class": "form-select"}),
             "telefone": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -31,6 +19,9 @@ class CompletarPerfilForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["grau"].required = True
         self.fields["curso"].required = True
-        self.fields["grau"].empty_label = "Selecione o grau"
+        self.fields["curso"].queryset = (
+            Curso.objects.filter(activo=True).order_by("grau", "nome")
+        )
+        self.fields["curso"].empty_label = "Selecione o curso"
+        self.fields["telefone"].required = False

@@ -6,6 +6,8 @@ from django.shortcuts import redirect
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
+from .models import Perfil, extrair_numero_estudante
+
 
 def dominio_email_permitido(email):
     if "@" not in email:
@@ -62,6 +64,25 @@ class ContasSocialAccountAdapter(DefaultSocialAccountAdapter):
                 sociallogin.user = utilizador
                 sociallogin.account.user = utilizador
                 sociallogin.save(request, connect=True)
+
+        # Depois do login, um perfil de estudante sem número tenta obtê-lo a
+        # partir do email. Se o número já pertencer a outro perfil, Perfil.save
+        # registra o conflito no log e deixa o número vazio (o login continua).
+        self._atribuir_numero_estudante(sociallogin.user)
+
+    @staticmethod
+    def _atribuir_numero_estudante(utilizador):
+        if utilizador is None or not utilizador.pk:
+            return
+        perfil = getattr(utilizador, "perfil", None)
+        if perfil is None or perfil.papel != Perfil.PAPEL_ESTUDANTE:
+            return
+        if perfil.numero_estudante:
+            return
+        if not extrair_numero_estudante(utilizador.email or ""):
+            return
+        perfil.numero_estudante = extrair_numero_estudante(utilizador.email)
+        perfil.save(update_fields=["numero_estudante"])
 
     @staticmethod
     def _obter_email(sociallogin):

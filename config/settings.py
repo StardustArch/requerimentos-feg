@@ -94,6 +94,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "contas.context_processors.google_oauth",
+                "contas.context_processors.atendimento_presencial",
             ],
         },
     },
@@ -245,4 +246,11 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 LEVANTAMENTO_INFO = os.environ.get(
     "LEVANTAMENTO_INFO",
     "na Secretaria da Faculdade",
+)
+
+# Indicação de atendimento presencial, usada quando o curso não está na lista
+# ou quando não é possível identificar o número de estudante pelo email.
+ATENDIMENTO_PRESENCIAL_INFO = os.environ.get(
+    "ATENDIMENTO_PRESENCIAL_INFO",
+    "Dirige-te à Secretaria da Faculdade e faz o pedido presencialmente.",
 )

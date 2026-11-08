@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
-from contas.models import Perfil
+from contas.models import Curso, Perfil
 from pedidos import services
 from pedidos.models import Anexo, Pedido, TipoDocumento
 
@@ -135,10 +135,10 @@ UTILIZADORES_DEMO = (
     },
     {
         "username": "estudante1",
-        "email": "estudante1@estudante.ucm.ac.mz",
+        # O número (701234567) é extraído automaticamente deste email.
+        "email": "701234567@example.com",
         "papel": Perfil.PAPEL_ESTUDANTE,
         "superuser": False,
-        "numero_estudante": "2023001234",
         "curso": "Informática de Gestão",
         "grau": Perfil.GRAU_LICENCIATURA,
     },
@@ -415,11 +415,18 @@ class Command(BaseCommand):
             perfil.papel = dados["papel"]
             campos_alterados.append("papel")
 
-        for campo in ("numero_estudante", "curso", "grau"):
-            valor = dados.get(campo)
-            if valor and not getattr(perfil, campo):
-                setattr(perfil, campo, valor)
-                campos_alterados.append(campo)
+        if dados.get("curso"):
+            curso, _ = Curso.objects.get_or_create(
+                nome=dados["curso"],
+                defaults={"grau": dados.get("grau") or Perfil.GRAU_LICENCIATURA},
+            )
+            if perfil.curso_id != curso.pk:
+                perfil.curso = curso
+                campos_alterados.append("curso")
+
+        if dados.get("grau") and perfil.grau != dados["grau"]:
+            perfil.grau = dados["grau"]
+            campos_alterados.append("grau")
 
         if campos_alterados:
             perfil.save(update_fields=campos_alterados)

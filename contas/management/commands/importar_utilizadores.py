@@ -9,13 +9,14 @@ from django.core.validators import validate_email
 from django.utils.crypto import get_random_string
 
 from contas.adapters import dominio_email_permitido
-from contas.models import Perfil
+from contas.models import Curso, Perfil, extrair_numero_estudante
 
 
 class Command(BaseCommand):
     help = (
         "Cria ou actualiza utilizadores a partir de um CSV com as colunas "
-        "nome, email, papel, numero_estudante, curso e grau."
+        "nome, email, papel, curso e grau. O número de estudante é sempre "
+        "extraído do email."
     )
 
     COLUNAS_OBRIGATORIAS = {"nome", "email", "papel"}
@@ -39,10 +40,28 @@ class Command(BaseCommand):
         linhas = self._ler_e_validar(caminho)
         criados = 0
         actualizados = 0
+        ignorados = 0
         passwords = []
 
         for linha in linhas:
             email = linha["email"]
+            papel = linha["papel"]
+
+            # Estudantes sem número identificável no email: ignorar a linha
+            # e reportar o erro, sem interromper a importação dos restantes.
+            if papel == Perfil.PAPEL_ESTUDANTE and not extrair_numero_estudante(
+                email
+            ):
+                ignorados += 1
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"Linha {linha['linha']}: {email!r} não contém um "
+                        "número de estudante no início da parte local; "
+                        "linha ignorada."
+                    )
+                )
+                continue
+
             utilizador = User.objects.filter(email__iexact=email).first()
             criado = utilizador is None
 
@@ -71,16 +90,17 @@ class Command(BaseCommand):
             perfil, _ = Perfil.objects.get_or_create(user=utilizador)
             campos_alterados = []
 
-            for campo in (
-                "papel",
-                "numero_estudante",
-                "curso",
-                "grau",
-            ):
+            for campo in ("papel", "curso", "grau"):
                 valor = linha[campo]
                 if getattr(perfil, campo) != valor:
                     setattr(perfil, campo, valor)
                     campos_alterados.append(campo)
+
+            if papel == Perfil.PAPEL_ESTUDANTE:
+                numero = extrair_numero_estudante(email) or ""
+                if perfil.numero_estudante != numero:
+                    perfil.numero_estudante = numero
+                    campos_alterados.append("numero_estudante")
 
             if campos_alterados:
                 perfil.save(update_fields=campos_alterados)
@@ -88,7 +108,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Importação concluída: {criados} criado(s), "
-                f"{actualizados} actualizado(s)."
+                f"{actualizados} actualizado(s), {ignorados} ignorado(s)."
             )
         )
 
@@ -122,14 +142,16 @@ class Command(BaseCommand):
 
             for numero, registo in enumerate(leitor, start=2):
                 registo = {
-                    (chave or "").strip().lower(): (valor or "").strip()
+                    chave.strip().lower(): (
+                        valor if isinstance(valor, str) else ""
+                    ).strip()
                     for chave, valor in registo.items()
+                    if chave is not None
                 }
                 nome = registo.get("nome", "")
                 email = registo.get("email", "").lower()
                 papel = registo.get("papel", "").lower()
-                numero_estudante = registo.get("numero_estudante") or None
-                curso = registo.get("curso") or None
+                nome_curso = registo.get("curso") or None
                 grau = registo.get("grau", "").lower() or None
 
                 if not nome:
@@ -160,12 +182,21 @@ class Command(BaseCommand):
                         "Use um de: " + ", ".join(sorted(graus_validos))
                     )
 
+                curso = None
+                if nome_curso:
+                    curso, _ = Curso.objects.get_or_create(
+                        nome=nome_curso,
+                        defaults={
+                            "grau": grau or Perfil.GRAU_LICENCIATURA,
+                        },
+                    )
+
                 partes_nome = nome.split()
                 linhas.append(
                     {
+                        "linha": numero,
                         "email": email,
                         "papel": papel,
-                        "numero_estudante": numero_estudante,
                         "curso": curso,
                         "grau": grau,
                         "first_name": partes_nome[0],

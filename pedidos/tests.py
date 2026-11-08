@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import Resolver404, resolve, reverse
 
-from contas.models import Perfil
+from contas.models import Curso, Perfil
 from pedidos.management.commands.seed_demo import PASSWORD_DEMO, PNG_MINIMO
 from pedidos.models import Anexo, Pedido, TipoDocumento
 from pedidos.validators import validar_anexo
@@ -120,8 +120,9 @@ class SeedDemoTests(MediaTempMixin, TestCase):
         self.assertTrue(admin.is_superuser)
 
         estudante = User.objects.get(username="estudante1")
-        self.assertEqual(estudante.perfil.numero_estudante, "2023001234")
-        self.assertEqual(estudante.perfil.curso, "Informática de Gestão")
+        self.assertEqual(estudante.email, "701234567@example.com")
+        self.assertEqual(estudante.perfil.numero_estudante, "701234567")
+        self.assertEqual(estudante.perfil.curso.nome, "Informática de Gestão")
         self.assertEqual(estudante.perfil.grau, Perfil.GRAU_LICENCIATURA)
 
     def test_seed_demo_cria_as_taxas_esperadas(self):
@@ -347,7 +348,7 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
         )
         perfil = incompleto.perfil
         perfil.grau = ""
-        perfil.curso = ""
+        perfil.curso = None
         perfil.save(update_fields=["grau", "curso"])
 
         self.client.force_login(incompleto)
@@ -365,11 +366,16 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
     def test_outro_estudante_recebe_404_no_detalhe_e_no_anexo(self):
         outro = User.objects.create_user(
             username="outro_estudante_pedidos",
+            email="2023000666@estudante.ucm.ac.mz",
             password="teste12345",
         )
         perfil = outro.perfil
+        curso = Curso.objects.create(
+            nome="Gestão",
+            grau=Perfil.GRAU_LICENCIATURA,
+        )
         perfil.grau = Perfil.GRAU_LICENCIATURA
-        perfil.curso = "Gestão"
+        perfil.curso = curso
         perfil.save(update_fields=["grau", "curso"])
 
         pedido = Pedido.objects.filter(estudante=self.estudante).first()

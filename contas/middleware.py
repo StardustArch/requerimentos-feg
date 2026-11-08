@@ -3,14 +3,28 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from .models import Perfil
+from .permissoes import e_admin, papel_utilizador
+
+
+PAPEIS_STAFF = (
+    Perfil.PAPEL_SECRETARIA,
+    Perfil.PAPEL_CREDITO,
+    Perfil.PAPEL_REGISTO,
+    Perfil.PAPEL_ADMIN,
+)
 
 
 class CompletarPerfilMiddleware:
-    """Obriga os estudantes a preencher o grau e o curso.
+    """Obriga os estudantes a ter curso e número de estudante.
 
-    Staff, administradores e superutilizadores não são afectados. As páginas
-    de login, logout e o próprio formulário de conclusão ficam sempre
-    acessíveis, tal como os ficheiros estáticos.
+    O número de estudante vem sempre do email institucional; se não for
+    possível identificá-lo, o estudante fica na página de bloqueio do
+    formulário de conclusão de perfil.
+
+    Staff (secretaria, crédito, registo, admin), administradores e
+    superutilizadores não são afectados. As páginas de login, logout e o
+    próprio formulário de conclusão ficam sempre acessíveis, tal como os
+    ficheiros estáticos.
     """
 
     def __init__(self, get_response):
@@ -26,7 +40,10 @@ class CompletarPerfilMiddleware:
         if not utilizador.is_authenticated:
             return False
 
-        if utilizador.is_staff or utilizador.is_superuser:
+        if e_admin(utilizador):
+            return False
+
+        if papel_utilizador(utilizador) in PAPEIS_STAFF:
             return False
 
         caminhos_excluidos = {
