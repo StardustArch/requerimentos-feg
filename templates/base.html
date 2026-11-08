@@ -74,7 +74,18 @@
                                    {% if vista == 'home' %}aria-current="page"{% endif %}
                                    href="{% url 'home' %}">Início</a>
                             </li>
-                            {% if request.user.perfil.papel == "secretaria" %}
+                            {% if request.user.perfil.papel == "estudante" %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if vista == 'pedidos:novo_pedido' %}active{% endif %}"
+                                       {% if vista == 'pedidos:novo_pedido' %}aria-current="page"{% endif %}
+                                       href="{% url 'pedidos:novo_pedido' %}">Novo pedido</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}active{% endif %}"
+                                       {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}aria-current="page"{% endif %}
+                                       href="{% url 'pedidos:meus_pedidos' %}">Meus pedidos</a>
+                                </li>
+                            {% elif request.user.perfil.papel == "secretaria" %}
                                 <li class="nav-item">
                                     <span class="nav-link disabled">Área da Secretaria</span>
                                 </li>

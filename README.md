@@ -4,7 +4,9 @@ Sistema de pedidos de documentos para a Faculdade de Economia e Gestão da
 Universidade Católica de Moçambique. Os estudantes submetem pedidos e os
 documentos são entregues fisicamente na secretaria.
 
-Esta é a **Fase 1**: perfis, login institucional (Google) e tipos de documento.
+Esta é a **Fase 2**: pedido do estudante, anexos protegidos e acompanhamento.
+As filas de trabalho do pessoal e as decisões de aprovação/indeferimento ficam
+para a Fase 3.
 
 ## Requisitos
 
@@ -41,6 +43,7 @@ A aplicação fica disponível em <http://127.0.0.1:8000/>.
 | `ALLOWED_EMAIL_DOMAINS` | `ucm.ac.mz,estudante.ucm.ac.mz` | Domínios de email autorizados, separados por vírgulas. |
 | `IVA_PERCENT` | `5` | Percentagem de IVA aplicada às taxas. |
 | `TAXA_FORMULARIO` | `20` | Valor base do formulário de pedido, sem IVA. |
+| `MAX_ANEXO_MB` | `5` | Tamanho máximo de cada anexo, em megabytes. |
 | `DEMO_PASSWORD` | `demo123` | Palavra-passe das contas criadas por `seed_demo`. |
 
 Exemplo para produção:
@@ -85,6 +88,10 @@ A conta `estudante1` tem número de estudante, curso e grau preenchidos. Se
 `DEMO_PASSWORD` não for definida, o comando mostra um aviso por estar a usar a
 palavra-passe de demonstração.
 
+O `seed_demo` também cria três pedidos de exemplo para `estudante1` (um na
+secretaria, um no controlo de crédito e um indeferido com motivo), cada um com
+uma cópia de BI em PDF e um comprovativo em PNG gerados pelo próprio comando.
+
 ## Tipos de documento
 
 `seed_demo` cria sete tipos com as taxas base (licenciatura/mestrado/
@@ -103,6 +110,29 @@ em dias úteis:
 
 Os valores são base, sem IVA. O total é calculado com `IVA_PERCENT` e o
 formulário acrescenta `TAXA_FORMULARIO` (também com IVA).
+
+## Anexos e ficheiros sensíveis
+
+Cada pedido obriga à submissão de dois anexos: a cópia do BI e o comprovativo
+de pagamento. São aceites apenas ficheiros **PDF, JPG/JPEG ou PNG** até
+`MAX_ANEXO_MB` (5 MB por omissão). A validação verifica os primeiros bytes do
+ficheiro, pelo que renomear um ficheiro para `.pdf` não é suficiente.
+
+Os ficheiros são guardados em `media/pedidos/<ano>/` com um nome aleatório
+(UUID) e apenas a extensão original. O nome enviado pelo utilizador é guardado
+separadamente em `nome_original` para aparecer na descarga e nunca é usado no
+caminho.
+
+Esta pasta **não é pública**: não é configurado um `MEDIA_URL` público nem
+existe qualquer rota que sirva `media/` directamente. As descargas passam
+todas pela vista `pedidos:anexo_download`, que confirma quem está autenticado
+e qual o seu papel antes de entregar o ficheiro. Um pedido de outro estudante
+ou um anexo não visível responde com **404**, para não revelar a existência do
+ficheiro.
+
+Como os anexos são dados sensíveis e não podem ser reconstruídos a partir da
+base de dados, a pasta `media/` (ou o volume/bucket usado em produção) precisa
+de **cópia de segurança regular**, em conjunto com a base de dados.
 
 ## Importar utilizadores
 

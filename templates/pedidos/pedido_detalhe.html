@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pedido.protocolo }} · Pedidos de Documentos · UCM-FEG{% endblock %}
+
+{% block page_title %}Detalhe do pedido{% endblock %}
+
+{% block breadcrumb %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'pedidos:meus_pedidos' %}">Meus pedidos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ pedido.protocolo }}</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span class="fw-semibold">{{ pedido.protocolo }}</span>
+                    {% if pedido.estado == "em_tratamento" %}
+                        <span class="badge text-bg-info">Em tratamento</span>
+                    {% elif pedido.estado == "indeferido" %}
+                        <span class="badge text-bg-danger">Indeferido</span>
+                    {% elif pedido.estado == "pronto" %}
+                        <span class="badge text-bg-success">Pronto</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">Entregue</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Tipo de documento</dt>
+                        <dd class="col-sm-8">{{ pedido.tipo.nome }}</dd>
+
+                        <dt class="col-sm-4">Grau</dt>
+                        <dd class="col-sm-8">{{ pedido.get_grau_display }}</dd>
+
+                        <dt class="col-sm-4">Motivo</dt>
+                        <dd class="col-sm-8">{{ pedido.motivo|linebreaksbr }}</dd>
+
+                        <dt class="col-sm-4">Valor total</dt>
+                        <dd class="col-sm-8">{{ pedido.valor_total|floatformat:2 }} MT</dd>
+
+                        <dt class="col-sm-4">Etapa actual</dt>
+                        <dd class="col-sm-8">{{ pedido.etapa_simples }}</dd>
+
+                        <dt class="col-sm-4">Submetido em</dt>
+                        <dd class="col-sm-8">{{ pedido.criado_em|date:"d/m/Y H:i" }}</dd>
+                    </dl>
+
+                    {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
+                        <div class="alert alert-danger mt-4 mb-0" role="alert">
+                            <strong>Motivo do indeferimento:</strong>
+                            {{ pedido.motivo_indeferimento|linebreaksbr }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-paperclip me-1"></i>Anexos
+                </div>
+                <div class="card-body">
+                    {% if anexos %}
+                        <ul class="list-group list-group-flush">
+                            {% for anexo in anexos %}
+                                <li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">
+                                    <span>
+                                        <i class="bi bi-file-earmark me-1"></i>
+                                        {{ anexo.get_tipo_display }}
+                                    </span>
+                                    <a href="{% url 'pedidos:anexo_download' anexo.pk %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download me-1"></i>Descarregar
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">Sem anexos disponíveis.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="{% url 'pedidos:meus_pedidos' %}" class="btn btn-outline-secondary w-100 mt-3">
+                <i class="bi bi-arrow-left me-1"></i>Voltar aos meus pedidos
+            </a>
+        </div>
+    </div>
+{% endblock %}

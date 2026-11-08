@@ -1,13 +1,52 @@
+import base64
 import os
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
 from contas.models import Perfil
-from pedidos.models import TipoDocumento
+from pedidos.models import Anexo, Pedido, TipoDocumento
 
 PASSWORD_DEMO = os.environ.get("DEMO_PASSWORD", "demo123")
+
+# PNG 1x1 transparente, mínimo e válido.
+PNG_MINIMO = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+)
+
+
+def _pdf_minimo():
+    """Constrói um PDF pequeno e válido, com a tabela xref correcta."""
+
+    objetos = (
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>",
+    )
+    partes = [b"%PDF-1.4\n"]
+    offsets = []
+
+    for numero, objeto in enumerate(objetos, start=1):
+        offsets.append(sum(len(parte) for parte in partes))
+        partes.append(f"{numero} 0 obj\n".encode("ascii"))
+        partes.append(objeto + b"\n")
+        partes.append(b"endobj\n")
+
+    inicio_xref = sum(len(parte) for parte in partes)
+    partes.append(b"xref\n")
+    partes.append(f"0 {len(objetos) + 1}\n".encode("ascii"))
+    partes.append(b"0000000000 65535 f \n")
+    for offset in offsets:
+        partes.append(f"{offset:010d} 00000 n \n".encode("ascii"))
+    partes.append(b"trailer\n")
+    partes.append(
+        f"<< /Size {len(objetos) + 1} /Root 1 0 R >>\n".encode("ascii")
+    )
+    partes.append(f"startxref\n{inicio_xref}\n%%EOF\n".encode("ascii"))
+    return b"".join(partes)
+
 
 TIPOS_DOCUMENTO = (
     {
@@ -104,6 +143,33 @@ UTILIZADORES_DEMO = (
     },
 )
 
+PEDIDOS_DEMO = (
+    {
+        "motivo": "Pedido de demonstração — certificado normal na secretaria.",
+        "tipo": "Certificado normal",
+        "estado": Pedido.ESTADO_EM_TRATAMENTO,
+        "etapa": Pedido.ETAPA_SECRETARIA_RECEPCAO,
+        "motivo_indeferimento": "",
+    },
+    {
+        "motivo": "Pedido de demonstração — declaração de notas no crédito.",
+        "tipo": "Declaração de notas",
+        "estado": Pedido.ESTADO_EM_TRATAMENTO,
+        "etapa": Pedido.ETAPA_CREDITO,
+        "motivo_indeferimento": "",
+    },
+    {
+        "motivo": "Pedido de demonstração — declaração simples indeferida.",
+        "tipo": "Declaração simples",
+        "estado": Pedido.ESTADO_INDEFERIDO,
+        "etapa": Pedido.ETAPA_SECRETARIA_RECEPCAO,
+        "motivo_indeferimento": (
+            "O comprovativo de pagamento está ilegível. Submeta novamente o "
+            "pedido com um comprovativo válido."
+        ),
+    },
+)
+
 
 class Command(BaseCommand):
     help = "Cria os tipos de documento e as contas de demonstração."
@@ -113,6 +179,9 @@ class Command(BaseCommand):
         tipos_existentes = 0
         utilizadores_criados = 0
         utilizadores_existentes = 0
+        pedidos_criados = 0
+        pedidos_existentes = 0
+        anexos_criados = 0
 
         for dados in TIPOS_DOCUMENTO:
             _, criado = TipoDocumento.objects.update_or_create(
@@ -138,6 +207,11 @@ class Command(BaseCommand):
             else:
                 utilizadores_existentes += 1
 
+        criados, existentes, anexos = self._garantir_pedidos()
+        pedidos_criados += criados
+        pedidos_existentes += existentes
+        anexos_criados += anexos
+
         self.stdout.write(self.style.SUCCESS("Dados de demonstração prontos."))
         self.stdout.write(
             "Tipos de documento: {criados} criados, {existentes} já existiam".format(
@@ -151,6 +225,14 @@ class Command(BaseCommand):
                 existentes=utilizadores_existentes,
             )
         )
+        self.stdout.write(
+            "Pedidos: {criados} criados, {existentes} já existiam; "
+            "anexos: {anexos} criados".format(
+                criados=pedidos_criados,
+                existentes=pedidos_existentes,
+                anexos=anexos_criados,
+            )
+        )
 
         if PASSWORD_DEMO == "demo123":
             self.stdout.write(
@@ -160,6 +242,61 @@ class Command(BaseCommand):
                     "DEMO_PASSWORD em produção."
                 )
             )
+
+    def _garantir_pedidos(self):
+        estudante = User.objects.get(username="estudante1")
+        pedidos_criados = 0
+        pedidos_existentes = 0
+        anexos_criados = 0
+        pdf_demo = _pdf_minimo()
+
+        for dados in PEDIDOS_DEMO:
+            tipo = TipoDocumento.objects.get(nome=dados["tipo"])
+            pedido, criado = Pedido.objects.get_or_create(
+                estudante=estudante,
+                motivo=dados["motivo"],
+                defaults={
+                    "tipo": tipo,
+                    "grau": estudante.perfil.grau,
+                    "estado": dados["estado"],
+                    "etapa_actual": dados["etapa"],
+                    "motivo_indeferimento": dados["motivo_indeferimento"],
+                },
+            )
+            if criado:
+                pedidos_criados += 1
+            else:
+                pedidos_existentes += 1
+
+            anexos = (
+                (
+                    Anexo.TIPO_BI,
+                    f"bi_demo_{pedido.pk}.pdf",
+                    pdf_demo,
+                    "bi_demo.pdf",
+                ),
+                (
+                    Anexo.TIPO_COMPROVATIVO,
+                    f"comprovativo_demo_{pedido.pk}.png",
+                    PNG_MINIMO,
+                    "comprovativo_demo.png",
+                ),
+            )
+
+            for tipo_anexo, nome_ficheiro, conteudo, nome_original in anexos:
+                if pedido.anexos.filter(tipo=tipo_anexo).exists():
+                    continue
+                Anexo.objects.create(
+                    pedido=pedido,
+                    tipo=tipo_anexo,
+                    ficheiro=ContentFile(conteudo, name=nome_ficheiro),
+                    nome_original=nome_original,
+                    visivel_ao_estudante=True,
+                    carregado_por=estudante,
+                )
+                anexos_criados += 1
+
+        return pedidos_criados, pedidos_existentes, anexos_criados
 
     def _garantir_utilizador(self, dados):
         utilizador, criado = User.objects.get_or_create(

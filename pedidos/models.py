@@ -1,7 +1,12 @@
+import os
+import uuid
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
+from contas.models import Perfil
 
 CENTAVOS = Decimal("0.01")
 
@@ -64,3 +69,149 @@ class TipoDocumento(models.Model):
         percentagem = _decimal(settings.IVA_PERCENT) / Decimal("100")
         formulario_com_iva = taxa_formulario * (Decimal("1") + percentagem)
         return _arredondar(self.total(grau) + formulario_com_iva)
+
+
+def caminho_anexo(instance, filename):
+    """Devolve um caminho imprevisível para o ficheiro anexado.
+
+    O nome enviado pelo utilizador nunca é usado no caminho. Só a extensão
+    original é preservada, e mesmo essa é normalizada para minúsculas.
+    """
+
+    extensao = os.path.splitext(filename)[1].lower()
+    ano = timezone.localdate().year
+    if instance.pedido_id and instance.pedido.criado_em:
+        ano = instance.pedido.criado_em.year
+    return f"pedidos/{ano}/{uuid.uuid4().hex}{extensao}"
+
+
+class Pedido(models.Model):
+    ESTADO_EM_TRATAMENTO = "em_tratamento"
+    ESTADO_INDEFERIDO = "indeferido"
+    ESTADO_PRONTO = "pronto"
+    ESTADO_ENTREGUE = "entregue"
+
+    ESTADO_CHOICES = (
+        (ESTADO_EM_TRATAMENTO, "Em tratamento"),
+        (ESTADO_INDEFERIDO, "Indeferido"),
+        (ESTADO_PRONTO, "Pronto"),
+        (ESTADO_ENTREGUE, "Entregue"),
+    )
+
+    ETAPA_SECRETARIA_RECEPCAO = "secretaria_recepcao"
+    ETAPA_CREDITO = "credito"
+    ETAPA_REGISTO = "registo"
+    ETAPA_SECRETARIA_FINAL = "secretaria_final"
+
+    ETAPA_CHOICES = (
+        (ETAPA_SECRETARIA_RECEPCAO, "Na secretaria"),
+        (ETAPA_CREDITO, "No controlo de crédito"),
+        (ETAPA_REGISTO, "No registo académico"),
+        (ETAPA_SECRETARIA_FINAL, "Aguarda assinatura da direcção"),
+    )
+
+    protocolo = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        default="",
+    )
+    estudante = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="pedidos",
+    )
+    tipo = models.ForeignKey(
+        TipoDocumento,
+        on_delete=models.PROTECT,
+        related_name="pedidos",
+    )
+    grau = models.CharField(max_length=20, choices=Perfil.GRAU_CHOICES)
+    motivo = models.TextField()
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default=ESTADO_EM_TRATAMENTO,
+    )
+    etapa_actual = models.CharField(
+        max_length=30,
+        choices=ETAPA_CHOICES,
+        default=ETAPA_SECRETARIA_RECEPCAO,
+    )
+    motivo_indeferimento = models.TextField(blank=True, default="")
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    pronto_em = models.DateTimeField(blank=True, null=True)
+    entregue_em = models.DateTimeField(blank=True, null=True)
+    entregue_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="pedidos_entregues",
+    )
+
+    class Meta:
+        ordering = ["-criado_em"]
+        verbose_name = "Pedido"
+        verbose_name_plural = "Pedidos"
+
+    def __str__(self):
+        return self.protocolo or f"Pedido #{self.pk or 'novo'}"
+
+    @property
+    def etapa_simples(self):
+        return self.get_etapa_actual_display()
+
+    def save(self, *args, **kwargs):
+        e_novo = self._state.adding
+
+        if e_novo:
+            if not self.grau and self.estudante_id:
+                self.grau = self.estudante.perfil.grau
+            # A taxa fica congelada no momento da criação do pedido.
+            self.valor_total = self.tipo.total_com_formulario(self.grau)
+
+        super().save(*args, **kwargs)
+
+        if e_novo:
+            self.protocolo = f"REQ-{timezone.localdate().year}-{self.pk:05d}"
+            super().save(update_fields=["protocolo"])
+
+
+class Anexo(models.Model):
+    TIPO_BI = "bi"
+    TIPO_COMPROVATIVO = "comprovativo"
+    TIPO_EXTRACTO = "extracto"
+    TIPO_OUTRO = "outro"
+
+    TIPO_CHOICES = (
+        (TIPO_BI, "Cópia do BI"),
+        (TIPO_COMPROVATIVO, "Comprovativo de pagamento"),
+        (TIPO_EXTRACTO, "Extracto bancário"),
+        (TIPO_OUTRO, "Outro"),
+    )
+
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.CASCADE,
+        related_name="anexos",
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    ficheiro = models.FileField(upload_to=caminho_anexo)
+    nome_original = models.CharField(max_length=255)
+    visivel_ao_estudante = models.BooleanField(default=False)
+    carregado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="anexos_carregados",
+    )
+    carregado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["carregado_em"]
+        verbose_name = "Anexo"
+        verbose_name_plural = "Anexos"
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} — {self.nome_original}"

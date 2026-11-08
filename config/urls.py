@@ -9,5 +9,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("contas/", include("contas.urls")),
+    path("pedidos/", include("pedidos.urls")),
     path("", dashboard_redirect, name="home"),
 ]

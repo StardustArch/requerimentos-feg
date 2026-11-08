@@ -1,0 +1,43 @@
+{% if tipo %}
+    <div id="resumo-pedido" class="card border-primary h-100">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-calculator me-1"></i>Resumo do pedido
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-7">Documento</dt>
+                <dd class="col-5 text-end">{{ tipo.nome }}</dd>
+
+                <dt class="col-7">Grau</dt>
+                <dd class="col-5 text-end">{{ grau_display }}</dd>
+
+                <dt class="col-7">Taxa total</dt>
+                <dd class="col-5 text-end fw-bold">{{ total|floatformat:2 }} MT</dd>
+
+                <dt class="col-7">Prazo estimado</dt>
+                <dd class="col-5 text-end">
+                    {% if prazo_estimado_dias %}
+                        {{ prazo_estimado_dias }} dias úteis
+                    {% else %}
+                        Não definido
+                    {% endif %}
+                </dd>
+            </dl>
+            <p class="form-text mt-3 mb-0">
+                A taxa total já inclui o formulário e o IVA.
+            </p>
+        </div>
+    </div>
+{% else %}
+    <div id="resumo-pedido" class="card h-100">
+        <div class="card-header">
+            <i class="bi bi-calculator me-1"></i>Resumo do pedido
+        </div>
+        <div class="card-body d-flex align-items-center">
+            <p class="text-muted mb-0">
+                Escolhe o tipo de documento para veres a taxa total e o prazo
+                estimado para o teu grau.
+            </p>
+        </div>
+    </div>
+{% endif %}

@@ -154,6 +154,17 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 
 # ---------------------------------------------------------------------------
+# Ficheiros enviados pelos utilizadores (anexos)
+# ---------------------------------------------------------------------------
+
+# Os anexos são dados sensíveis: ficam fora de STATIC_ROOT e não existe
+# qualquer rota pública que sirva esta pasta. Só a vista anexo_download os
+# entrega, depois de verificar as permissões.
+MEDIA_ROOT = BASE_DIR / "media"
+MAX_ANEXO_MB = int(os.environ.get("MAX_ANEXO_MB", "5"))
+
+
+# ---------------------------------------------------------------------------
 # Login / logout
 # ---------------------------------------------------------------------------
 
