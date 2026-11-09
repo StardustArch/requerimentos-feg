@@ -1,5 +1,5 @@
 {% if tipo %}
-    <div class="card border-brand-200">
+    <div id="resumo-pedido" class="card border-brand-200">
         <div class="card-header bg-brand-50 border-brand-200">
             <div class="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-brand-600"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -29,7 +29,7 @@
         </div>
     </div>
 {% else %}
-    <div class="card">
+    <div id="resumo-pedido" class="card">
         <div class="card-body py-8 text-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 mx-auto text-slate-400 mb-3"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <p class="text-xs text-slate-500">Escolhe o tipo de documento para veres a taxa total e o prazo estimado para o teu grau.</p>

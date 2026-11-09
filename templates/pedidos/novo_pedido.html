@@ -42,15 +42,18 @@
 
                         <div class="form-field">
                             <label for="id_tipo" class="form-label">Tipo de documento <span class="text-rose-500">*</span></label>
-                            <select name="tipo" id="id_tipo" class="form-select" required>
-                                <option value="">Selecione o tipo de documento</option>
-                                {% for tipo in form.fields.tipo.queryset %}
-                                    <option value="{{ tipo.pk }}" {% if form.tipo.value|stringformat:"s" == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.nome }}</option>
+                            <form action="{% url 'pedidos:resumo_pedido' %}" method="get"
+                                  class="inline w-full" up-target="#resumo-pedido" up-transition="fade-in">
+                                <select name="tipo" id="id_tipo" class="form-select w-full" required up-autosubmit>
+                                    <option value="">Selecione o tipo de documento</option>
+                                    {% for tipo in form.fields.tipo.queryset %}
+                                        <option value="{{ tipo.pk }}" {% if form.tipo.value|stringformat:"s" == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% for erro in form.tipo.errors %}
+                                    <p class="form-error mt-1">{{ erro }}</p>
                                 {% endfor %}
-                            </select>
-                            {% for erro in form.tipo.errors %}
-                                <p class="form-error">{{ erro }}</p>
-                            {% endfor %}
+                            </form>
                         </div>
 
                         <div class="form-field">

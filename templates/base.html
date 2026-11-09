@@ -7,6 +7,7 @@
     <title>{% block title %}Pedidos de Documentos · UCM-FEG{% endblock %}</title>
 
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/unpoly/unpoly.min.css' %}">
     <link rel="preload" as="font" href="{% static 'fonts/Inter-Regular.woff2' %}" type="font/woff2" crossorigin>
     <link rel="preload" as="font" href="{% static 'fonts/Inter-Medium.woff2' %}" type="font/woff2" crossorigin>
     <link rel="preload" as="font" href="{% static 'fonts/Inter-SemiBold.woff2' %}" type="font/woff2" crossorigin>
@@ -15,6 +16,8 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="antialiased">
+    <meta name="up-csrf" content="{{ csrf_token }}">
+    <meta name="up-csrf-header" content="X-CSRFToken">
 
     {% if request.user.is_authenticated %}
     <!-- Sidebar esquerda fixa -->
@@ -155,6 +158,22 @@
         {% endblock %}
     </div>
     {% endif %}
+
+    <script src="{% static 'vendor/unpoly/unpoly.min.js' %}"></script>
+    <script>
+        // Configurar CSRF para o Unpoly
+        up.framework.config.methodParam = '_method';
+        up.protocol.config.headers = {
+            'X-CSRFToken': document.querySelector('meta[name="up-csrf"]')?.content || '',
+        };
+
+        // Configurar a camada padrão como 'page' para substituição completa
+        up.framework.config.layer = 'page';
+
+        // Progressive enhancement: Unpoly melhora links e campos existentes
+        // sem exigir atributos up-*. Links e campos funcionam como HTML normal
+        // sem JavaScript.
+    </script>
 
     <script>
         // Fechar sidebar no mobile ao clicar fora
