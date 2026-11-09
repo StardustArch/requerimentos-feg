@@ -4,73 +4,59 @@
 
 {% block page_title %}Meus pedidos{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Meus pedidos</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <h2 class="h4 mb-0">
-            <i class="bi bi-list-check"></i>Pedidos submetidos
-        </h2>
-        <a href="{% url 'pedidos:novo_pedido' %}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>Novo pedido
-        </a>
+{% block breadcrumb %}
+{% endblock %}
+
+{% block conteudo_autenticado %}
+    <div class="flex items-center justify-between gap-4 mb-4">
+        <div>
+            <h2 class="text-sm font-semibold text-slate-900">Pedidos submetidos</h2>
+        </div>
+        <a href="{% url 'pedidos:novo_pedido' %}" class="btn-primary btn-sm">Novo pedido</a>
     </div>
 
     {% if pedidos %}
-        <p class="text-muted mb-2">
-            {{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}
-        </p>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle bg-white">
+        <p class="text-xs text-slate-500 mb-3">{{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}</p>
+        <div class="card overflow-hidden">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th scope="col">Protocolo</th>
-                        <th scope="col">Tipo</th>
-                        <th scope="col">Estado</th>
-                        <th scope="col">Etapa</th>
-                        <th scope="col">Data</th>
-                        <th scope="col"><span class="visually-hidden">Acções</span></th>
+                        <th class="w-32">Protocolo</th>
+                        <th>Tipo</th>
+                        <th class="w-40">Estado</th>
+                        <th class="w-40">Etapa</th>
+                        <th class="w-32">Data</th>
+                        <th class="w-20 text-end"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pedido in pedidos %}
-                        <tr>
-                            <td class="fw-semibold">{{ pedido.protocolo }}</td>
-                            <td>{{ pedido.tipo.nome }}</td>
-                            <td>
-                                {% if pedido.estado == "em_tratamento" %}
-                                    <span class="badge text-bg-info">Em tratamento</span>
-                                {% elif pedido.estado == "indeferido" %}
-                                    <span class="badge text-bg-danger">Indeferido</span>
-                                {% elif pedido.estado == "pronto" %}
-                                    <span class="badge text-bg-success">Pronto</span>
-                                {% else %}
-                                    <span class="badge text-bg-secondary">Entregue</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {{ pedido.etapa_simples }}
-                                {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
-                                    <div class="small text-danger">
-                                        {{ pedido.motivo_indeferimento }}
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td>{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                            <td class="text-end">
-                                <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Ver detalhe
-                                </a>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td class="font-medium text-slate-900">{{ pedido.protocolo }}</td>
+                        <td class="text-slate-700">{{ pedido.tipo.nome }}</td>
+                        <td>
+                            {% if pedido.estado == "em_tratamento" %}
+                                <span class="status-pill status-novo">Em tratamento</span>
+                            {% elif pedido.estado == "indeferido" %}
+                                <span class="status-pill status-indeferido">Indeferido</span>
+                            {% elif pedido.estado == "pronto" %}
+                                <span class="status-pill status-pronto">Pronto</span>
+                            {% else %}
+                                <span class="status-pill status-pronto">Entregue</span>
+                            {% endif %}
+                            {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
+                                <p class="text-xs text-rose-600 mt-1">{{ pedido.motivo_indeferimento }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="text-slate-700">{{ pedido.etapa_simples }}</td>
+                        <td class="text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Ver detalhe</a>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -78,14 +64,12 @@
 
         {% include "_paginacao.html" %}
     {% else %}
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-inbox display-4 text-muted"></i>
-                <p class="mt-3 mb-2">Ainda não submeteste nenhum pedido.</p>
-                <a href="{% url 'pedidos:novo_pedido' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i>Fazer o primeiro pedido
-                </a>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-slate-400"><polyline points="14 2 6 9 14 21"></polyline><path d="M3 9h18"></path><path d="M5 22h14"></path></svg>
             </div>
+            <h2 class="text-sm font-semibold text-slate-900 mb-2">Ainda não submeteste nenhum pedido.</h2>
+            <a href="{% url 'pedidos:novo_pedido' %}" class="btn-primary">Fazer o primeiro pedido</a>
         </div>
     {% endif %}
 {% endblock %}

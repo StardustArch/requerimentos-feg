@@ -1,37 +1,25 @@
 {% if page_obj.paginator.num_pages > 1 %}
-    <nav aria-label="Paginação">
-        <ul class="pagination justify-content-center">
+    <nav class="mt-4 flex items-center justify-between" aria-label="Paginação">
+        <div class="flex -space-x-1">
             {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link"
-                       href="{% querystring page=page_obj.previous_page_number %}">
-                        Anterior
-                    </a>
-                </li>
+                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-ghost btn-sm px-3">
+                    Anterior
+                </a>
             {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Anterior</span>
-                </li>
+                <button class="btn-ghost btn-sm px-3 text-slate-400 cursor-not-allowed">Anterior</button>
             {% endif %}
-
-            <li class="page-item disabled">
-                <span class="page-link">
-                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                </span>
-            </li>
-
+        </div>
+        <span class="text-xs text-slate-500 px-3">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+        <div class="flex -space-x-1">
             {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link"
-                       href="{% querystring page=page_obj.next_page_number %}">
-                        Seguinte
-                    </a>
-                </li>
+                <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-ghost btn-sm px-3">
+                    Seguinte
+                </a>
             {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">Seguinte</span>
-                </li>
+                <button class="btn-ghost btn-sm px-3 text-slate-400 cursor-not-allowed">Seguinte</button>
             {% endif %}
-        </ul>
+        </div>
     </nav>
 {% endif %}

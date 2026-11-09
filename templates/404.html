@@ -2,30 +2,36 @@
 
 {% block title %}Página não encontrada · Pedidos de Documentos · UCM-FEG{% endblock %}
 
-{% block page_header %}
-    <header class="ucm-page-header">
-        <div class="container">
-            <h1>Página não encontrada</h1>
-        </div>
-    </header>
+{% block page_title %}Página não encontrada{% endblock %}
+
+{% block breadcrumb %}
 {% endblock %}
 
-{% block content %}
-    <div class="row justify-content-center py-4">
-        <div class="col-12 col-md-8 col-lg-6">
-            <div class="card">
-                <div class="card-body text-center p-5">
-                    <i class="bi bi-compass display-3 text-primary"></i>
-                    <h2 class="h4 mt-3">Não encontrámos esta página</h2>
-                    <p class="text-muted">
-                        O endereço pode estar incorrecto ou o conteúdo já não
-                        existe. Confirme o link ou volte à página inicial.
-                    </p>
-                    <a href="{% url 'home' %}" class="btn btn-primary">
-                        <i class="bi bi-house-door me-1"></i>Voltar à página inicial
-                    </a>
-                </div>
-            </div>
+{% block page_header %}
+{% endblock %}
+
+{% block conteudo_autenticado %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-brand-500"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
         </div>
+        <h2 class="text-xl font-bold text-slate-900 mb-2">Não encontrámos esta página</h2>
+        <p class="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
+            O endereço pode estar incorrecto ou o conteúdo já não existe. Confirme o link ou volte à página inicial.
+        </p>
+        <a href="{% url 'home' %}" class="btn-primary">Voltar à página inicial</a>
+    </div>
+{% endblock %}
+
+{% block conteudo_nao_autenticado %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-brand-500"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 mb-2">Não encontrámos esta página</h2>
+        <p class="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
+            O endereço pode estar incorrecto ou o conteúdo já não existe. Confirme o link ou volte à página inicial.
+        </p>
+        <a href="{% url 'home' %}" class="btn-primary">Voltar à página inicial</a>
     </div>
 {% endblock %}

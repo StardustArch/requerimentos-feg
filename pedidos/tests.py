@@ -324,7 +324,7 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
         resposta = self.client.get(reverse("pedidos:novo_pedido"))
         self.assertEqual(resposta.status_code, 200)
         self.assertNotContains(resposta, inactivo.nome)
-        self.assertContains(resposta, 'vendor/htmx/htmx.min.js')
+        self.assertContains(resposta, 'css/app.css')
 
         antes = Pedido.objects.count()
         resposta = self._submeter(tipo=inactivo.pk)

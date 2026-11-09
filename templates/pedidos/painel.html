@@ -5,210 +5,165 @@
 
 {% block page_title %}Painel de indicadores{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Painel</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
-        <div>
-            <h2 class="h4 mb-1">
-                <i class="bi bi-bar-chart-line"></i>Indicadores dos pedidos
-            </h2>
-            <p class="text-muted mb-0">
-                Dados agregados, sem identificação dos estudantes.
-            </p>
-        </div>
+{% block breadcrumb %}
+{% endblock %}
 
-        <form method="get" class="d-flex align-items-end gap-2">
-            <div>
-                <label for="id_periodo" class="form-label mb-1">Período</label>
+{% block conteudo_autenticado %}
+    <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex-1">
+            <h2 class="text-sm font-semibold text-slate-900">Indicadores dos pedidos</h2>
+            <p class="text-xs text-slate-500">Dados agregados, sem identificação dos estudantes.</p>
+        </div>
+        <form method="get" class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
+                <label for="id_periodo" class="text-xs text-slate-500">Período</label>
                 <select name="periodo" id="id_periodo" class="form-select">
                     {% for valor, rotulo in periodos %}
-                        <option value="{{ valor }}" {% if valor == periodo %}selected{% endif %}>
-                            {{ rotulo }}
-                        </option>
+                        <option value="{{ valor }}" {% if valor == periodo %}selected{% endif %}>{{ rotulo }}</option>
                     {% endfor %}
                 </select>
+                <button type="submit" class="btn-primary btn-sm">Aplicar</button>
             </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel me-1"></i>Aplicar
-            </button>
         </form>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-xl">
-            <div class="card h-100">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase small mb-1">Total no período</p>
-                    <p class="display-6 fw-semibold mb-0">{{ cartoes.total }}</p>
-                </div>
+    <!-- Cartões -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <div class="card p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Total no período</p>
+            <p class="text-2xl font-bold text-slate-900">{{ cartoes.total }}</p>
+        </div>
+        <div class="card p-4 border-brand-100">
+            <p class="text-xs text-brand-600 uppercase tracking-wider font-semibold mb-1">Em tratamento</p>
+            <p class="text-2xl font-bold text-slate-900">{{ cartoes.em_tratamento }}</p>
+        </div>
+        <div class="card p-4 border-emerald-100">
+            <p class="text-xs text-emerald-600 uppercase tracking-wider font-semibold mb-1">Prontos</p>
+            <p class="text-2xl font-bold text-emerald-600">{{ cartoes.prontos }}</p>
+        </div>
+        <div class="card p-4 border-slate-100">
+            <p class="text-xs text-slate-600 uppercase tracking-wider font-semibold mb-1">Entregues</p>
+            <p class="text-2xl font-bold text-slate-600">{{ cartoes.entregues }}</p>
+        </div>
+        <div class="card p-4 border-rose-100">
+            <p class="text-xs text-rose-600 uppercase tracking-wider font-semibold mb-1">Indeferidos</p>
+            <p class="text-2xl font-bold text-rose-600">{{ cartoes.indeferidos }}</p>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="lg:col-span-2 card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Pedidos por tipo de documento</span>
+            </div>
+            <div class="card-body h-64">
+                <canvas id="grafico-tipos" height="230"></canvas>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-xl">
-            <div class="card h-100">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase small mb-1">Em tratamento</p>
-                    <p class="display-6 fw-semibold mb-0 text-info">{{ cartoes.em_tratamento }}</p>
-                </div>
+        <div class="lg:col-span-1 card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Pedidos por estado</span>
             </div>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <div class="card h-100">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase small mb-1">Prontos</p>
-                    <p class="display-6 fw-semibold mb-0 text-success">{{ cartoes.prontos }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <div class="card h-100">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase small mb-1">Entregues</p>
-                    <p class="display-6 fw-semibold mb-0 text-secondary">{{ cartoes.entregues }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <div class="card h-100">
-                <div class="card-body">
-                    <p class="text-muted text-uppercase small mb-1">Indeferidos</p>
-                    <p class="display-6 fw-semibold mb-0 text-danger">{{ cartoes.indeferidos }}</p>
-                </div>
+            <div class="card-body h-64 flex items-center justify-center">
+                <canvas id="grafico-estados" height="230"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-xl-7">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Pedidos por tipo de documento
-                </div>
-                <div class="card-body">
-                    <canvas id="grafico-tipos" height="230"
-                            aria-label="Pedidos por tipo de documento"></canvas>
-                </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div class="card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Fila actual por etapa</span>
+                <span class="ml-1 inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px]">Só em tratamento</span>
+            </div>
+            <div class="card-body h-64">
+                <canvas id="grafico-fila" height="230"></canvas>
             </div>
         </div>
-        <div class="col-12 col-md-6 col-xl-5">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Pedidos por estado
-                </div>
-                <div class="card-body">
-                    <canvas id="grafico-estados" height="230"
-                            aria-label="Pedidos por estado"></canvas>
-                </div>
+        <div class="card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Indeferimentos por etapa</span>
             </div>
-        </div>
-        <div class="col-12 col-md-6">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Fila actual por etapa
-                    <span class="text-muted fw-normal small">(só em tratamento)</span>
-                </div>
-                <div class="card-body">
-                    <canvas id="grafico-fila" height="230"
-                            aria-label="Fila actual por etapa"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Indeferimentos por etapa
-                </div>
-                <div class="card-body">
-                    <canvas id="grafico-indeferidos" height="230"
-                            aria-label="Indeferimentos por etapa"></canvas>
-                </div>
+            <div class="card-body h-64">
+                <canvas id="grafico-indeferidos" height="230"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-12 col-xl-7">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Tempo médio de processamento por tipo
+    <!-- Tabela tempo médio + pedidos antigos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Tempo médio de processamento por tipo</span>
+            </div>
+            <div class="card-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo de documento</th>
+                            <th class="w-40 text-end">Tempo médio</th>
+                            <th class="w-40 text-end">Prazo estimado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for linha in tempo_medio %}
+                        <tr {% if linha.excede %}class="bg-rose-50"{% endif %}>
+                            <td class="text-sm text-slate-700">{{ linha.tipo.nome }}</td>
+                            <td class="text-sm text-end {% if linha.excede %}text-rose-600 font-medium{% else %}text-slate-700{% endif %}">
+                                {% if linha.media_dias is not None %}
+                                    {{ linha.media_dias|floatformat:1 }} dia{{ linha.media_dias|pluralize:"s" }}
+                                {% else %}
+                                    <span class="text-slate-400">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-sm text-end text-slate-700">
+                                {% if linha.prazo_dias %}
+                                    {{ linha.prazo_dias }} dia{{ linha.prazo_dias|pluralize:"s" }}
+                                {% else %}
+                                    <span class="text-slate-400">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="mt-3 p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <p class="text-[10px] text-slate-500">A vermelho quando o tempo médio ultrapassa o prazo estimado.</p>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+            </div>
+        </div>
+        <div class="lg:col-span-1 card">
+            <div class="card-header">
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Há mais tempo em tratamento</span>
+            </div>
+            <div class="card-body">
+                {% if mais_antigos %}
+                    <table class="data-table w-full">
                         <thead>
                             <tr>
-                                <th scope="col">Tipo de documento</th>
-                                <th scope="col" class="text-end">Tempo médio</th>
-                                <th scope="col" class="text-end">Prazo estimado</th>
+                                <th class="w-1/3">Protocolo</th>
+                                <th class="w-1/3">Tipo</th>
+                                <th class="w-1/3 text-end">Dias</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for linha in tempo_medio %}
-                                <tr {% if linha.excede %}class="table-danger"{% endif %}>
-                                    <td>{{ linha.tipo.nome }}</td>
-                                    <td class="text-end">
-                                        {% if linha.media_dias is not None %}
-                                            {{ linha.media_dias|floatformat:1 }} dia{{ linha.media_dias|pluralize:"s" }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if linha.prazo_dias %}
-                                            {{ linha.prazo_dias }} dia{{ linha.prazo_dias|pluralize:"s" }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                            {% for pedido in mais_antigos %}
+                            <tr>
+                                <td class="text-xs font-medium text-slate-900">{{ pedido.protocolo }}</td>
+                                <td class="text-xs text-slate-700">{{ pedido.tipo.nome }}</td>
+                                <td class="text-xs text-end text-slate-700">{{ pedido.dias_na_fila }}</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-                <div class="card-footer bg-white small text-muted">
-                    A vermelho quando o tempo médio ultrapassa o prazo estimado.
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-5">
-            <div class="card h-100">
-                <div class="card-header bg-white fw-semibold">
-                    Há mais tempo em tratamento
-                </div>
-                {% if mais_antigos %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Protocolo</th>
-                                    <th scope="col">Tipo</th>
-                                    <th scope="col">Etapa</th>
-                                    <th scope="col" class="text-end">Dias</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pedido in mais_antigos %}
-                                    <tr>
-                                        <td class="fw-semibold">{{ pedido.protocolo }}</td>
-                                        <td>{{ pedido.tipo.nome }}</td>
-                                        <td>{{ pedido.get_etapa_actual_display }}</td>
-                                        <td class="text-end">{{ pedido.dias_na_fila }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
                 {% else %}
-                    <div class="card-body text-center text-muted py-5">
-                        <i class="bi bi-check2-circle display-4"></i>
-                        <p class="mt-3 mb-0">Não há pedidos em tratamento.</p>
+                    <div class="empty-state py-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mx-auto text-slate-400 mb-2"><path d="M20 13V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"></path><path d="M16 11V7"></path><path d="M8 11v5l4 2"></path></svg>
+                        <p class="text-[10px] text-slate-500 text-center">Não há pedidos em tratamento.</p>
                     </div>
                 {% endif %}
             </div>
@@ -228,7 +183,7 @@
                 return JSON.parse(document.getElementById(id).textContent);
             }
 
-            function barras(id, dados, cor, horizontal) {
+            function barras(id, dados, cor) {
                 return new Chart(document.getElementById(id), {
                     type: "bar",
                     data: {
@@ -243,30 +198,19 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        indexAxis: horizontal ? "y" : "x",
+                        indexAxis: "y",
                         plugins: { legend: { display: false } },
                         scales: {
-                            x: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 }
-                            }
+                            x: { beginAtZero: true, ticks: { precision: 0 } },
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
                         }
                     }
                 });
             }
 
-            barras("grafico-tipos", ler("dados-tipos"), "#3b8de0", false);
-            barras("grafico-fila", ler("dados-fila"), "#2d2a8c", true);
-            barras(
-                "grafico-indeferidos",
-                ler("dados-indeferidos"),
-                "#b02a37",
-                false
-            );
+            barras("grafico-tipos", ler("dados-tipos"), "#3b8de0");
+            barras("grafico-fila", ler("dados-fila"), "#2d2a8c");
+            barras("grafico-indeferidos", ler("dados-indeferidos"), "#f43f5e");
 
             new Chart(document.getElementById("grafico-estados"), {
                 type: "doughnut",
@@ -274,12 +218,7 @@
                     labels: ler("dados-estados").labels,
                     datasets: [{
                         data: ler("dados-estados").valores,
-                        backgroundColor: [
-                            "#0dcaf0",
-                            "#dc3545",
-                            "#198754",
-                            "#6c757d"
-                        ]
+                        backgroundColor: ["#0ea5e9", "#f43f5e", "#10b981", "#94a3b8"]
                     }]
                 },
                 options: {

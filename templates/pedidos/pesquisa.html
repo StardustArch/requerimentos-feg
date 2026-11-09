@@ -4,159 +4,133 @@
 
 {% block page_title %}Pesquisa de pedidos{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'pedidos:fila' %}">Fila</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Pesquisa</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <form method="get" class="card card-body mb-3">
-        <div class="row g-3 align-items-end">
-            <div class="col-12 col-lg-4">
-                <label for="id_q" class="form-label">Pesquisar</label>
-                <input type="search"
-                       class="form-control"
-                       id="id_q"
-                       name="q"
-                       value="{{ q }}"
-                       placeholder="Protocolo, nome, email ou número de estudante">
-            </div>
-            <div class="col-sm-6 col-lg-2">
-                <label for="id_estado" class="form-label">Estado</label>
-                <select name="estado" id="id_estado" class="form-select">
-                    <option value="">Todos</option>
-                    {% for valor, rotulo in estados %}
-                        <option value="{{ valor }}" {% if valor == estado %}selected{% endif %}>
-                            {{ rotulo }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-sm-6 col-lg-2">
-                <label for="id_etapa" class="form-label">Etapa</label>
-                <select name="etapa" id="id_etapa" class="form-select">
-                    <option value="">Todas</option>
-                    {% for valor, rotulo in etapas %}
-                        <option value="{{ valor }}" {% if valor == etapa %}selected{% endif %}>
-                            {{ rotulo }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-sm-6 col-lg-2">
-                <label for="id_tipo" class="form-label">Tipo</label>
-                <select name="tipo" id="id_tipo" class="form-select">
-                    <option value="">Todos</option>
-                    {% for documento in tipos %}
-                        <option value="{{ documento.pk }}" {% if documento.pk|stringformat:"s" == tipo %}selected{% endif %}>
-                            {{ documento.nome }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-sm-6 col-lg-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-1"></i>Pesquisar
-                </button>
-            </div>
-        </div>
-    </form>
+{% block breadcrumb %}
+{% endblock %}
 
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-        <p class="text-muted mb-0">
-            {{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}
-        </p>
-        {% if q or estado or etapa or tipo %}
-            <a href="{% url 'pedidos:pesquisa' %}" class="btn btn-sm btn-outline-secondary">
-                Limpar filtros
-            </a>
-        {% endif %}
+{% block conteudo_autenticado %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="col-span-1 sm:col-span-2">
+                    <label for="id_q" class="form-label">Pesquisar</label>
+                    <input type="search" class="form-input" id="id_q" name="q" value="{{ q }}" placeholder="Protocolo, nome, email ou número de estudante">
+                </div>
+                <div>
+                    <label for="id_estado" class="form-label">Estado</label>
+                    <select name="estado" id="id_estado" class="form-select">
+                        <option value="">Todos</option>
+                        {% for valor, rotulo in estados %}
+                            <option value="{{ valor }}" {% if valor == estado %}selected{% endif %}>{{ rotulo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="id_etapa" class="form-label">Etapa</label>
+                    <select name="etapa" id="id_etapa" class="form-select">
+                        <option value="">Todas</option>
+                        {% for valor, rotulo in etapas %}
+                            <option value="{{ valor }}" {% if valor == etapa %}selected{% endif %}>{{ rotulo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="id_tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="id_tipo" class="form-select">
+                        <option value="">Todos</option>
+                        {% for documento in tipos %}
+                            <option value="{{ documento.pk }}" {% if documento.pk|stringformat:"s" == tipo %}selected{% endif %}>{{ documento.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full btn-primary btn-sm">Pesquisar</button>
+                </div>
+                {% if q or estado or etapa or tipo %}
+                    <div class="flex items-end col-span-1 sm:col-span-2 lg:col-span-1">
+                        <a href="{% url 'pedidos:pesquisa' %}" class="w-full btn-ghost btn-sm">Limpar filtros</a>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-4 mb-3">
+        <p class="text-xs text-slate-500">{{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}</p>
     </div>
 
     {% if pedidos %}
-        <div class="table-responsive">
-            <table class="table table-hover align-middle bg-white">
+        <div class="card overflow-hidden">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th scope="col">Protocolo</th>
-                        <th scope="col">Estudante</th>
-                        <th scope="col">Tipo</th>
-                        <th scope="col">Estado</th>
-                        <th scope="col">Etapa</th>
-                        <th scope="col">Submetido</th>
-                        <th scope="col"><span class="visually-hidden">Acções</span></th>
+                        <th class="w-32">Protocolo</th>
+                        <th>Estudante</th>
+                        <th class="w-40">Tipo</th>
+                        <th class="w-40">Estado</th>
+                        <th class="w-40">Etapa</th>
+                        <th class="w-32">Submetido</th>
+                        <th class="w-20 text-end"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pedido in pedidos %}
-                        <tr>
-                            <td class="fw-semibold">{{ pedido.protocolo }}</td>
-                            <td>
-                                {{ pedido.estudante.get_full_name|default:pedido.estudante.username }}
-                                <div class="small text-muted">
-                                    {{ pedido.estudante.perfil.numero_estudante|default:pedido.estudante.email }}
-                                </div>
-                            </td>
-                            <td>{{ pedido.tipo.nome }}</td>
-                            <td>{{ pedido.get_estado_display }}</td>
-                            <td>{{ pedido.etapa_simples }}</td>
-                            <td>{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                            <td class="text-end">
-                                <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Abrir
-                                </a>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td class="font-medium text-slate-900">{{ pedido.protocolo }}</td>
+                        <td>
+                            <div class="text-sm text-slate-900">{{ pedido.estudante.get_full_name|default:pedido.estudante.username }}</div>
+                            <div class="text-xs text-slate-500">{{ pedido.estudante.perfil.numero_estudante|default:pedido.estudante.email }}</div>
+                        </td>
+                        <td class="text-slate-700">{{ pedido.tipo.nome }}</td>
+                        <td class="text-sm">
+                            {% if pedido.estado == "em_tratamento" %}
+                                <span class="status-pill status-novo text-[10px]">Em tratamento</span>
+                            {% elif pedido.estado == "indeferido" %}
+                                <span class="status-pill status-indeferido text-[10px]">Indeferido</span>
+                            {% elif pedido.estado == "pronto" %}
+                                <span class="status-pill status-pronto text-[10px]">Pronto</span>
+                            {% else %}
+                                <span class="status-pill status-pronto text-[10px]">Entregue</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-sm text-slate-700">{{ pedido.etapa_simples }}</td>
+                        <td class="text-sm text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Abrir</a>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
         {% if page_obj.paginator.num_pages > 1 %}
-            <nav aria-label="Paginação">
-                <ul class="pagination justify-content-center">
+            <nav class="mt-4 flex items-center justify-between" aria-label="Paginação">
+                <div class="flex -space-x-1">
                     {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}&etapa={{ etapa|urlencode }}&tipo={{ tipo|urlencode }}">
-                                Anterior
-                            </a>
-                        </li>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-ghost btn-sm px-3">Anterior</a>
                     {% else %}
-                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                        <button class="btn-ghost btn-sm px-3 text-slate-400 cursor-not-allowed">Anterior</button>
                     {% endif %}
-
-                    <li class="page-item disabled">
-                        <span class="page-link">
-                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                        </span>
-                    </li>
-
+                </div>
+                <span class="text-xs text-slate-500 px-3">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                <div class="flex -space-x-1">
                     {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}&etapa={{ etapa|urlencode }}&tipo={{ tipo|urlencode }}">
-                                Seguinte
-                            </a>
-                        </li>
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn-ghost btn-sm px-3">Seguinte</a>
                     {% else %}
-                        <li class="page-item disabled"><span class="page-link">Seguinte</span></li>
+                        <button class="btn-ghost btn-sm px-3 text-slate-400 cursor-not-allowed">Seguinte</button>
                     {% endif %}
-                </ul>
+                </div>
             </nav>
         {% endif %}
     {% else %}
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-search display-4 text-muted"></i>
-                <p class="mt-3 mb-0">Nenhum pedido corresponde aos critérios.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-slate-400"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
             </div>
+            <h2 class="text-sm font-semibold text-slate-900 mb-2">Nenhum pedido corresponde aos critérios.</h2>
         </div>
     {% endif %}
 {% endblock %}

@@ -1,46 +1,38 @@
 {% if tipo %}
-    <div id="resumo-pedido" class="card border-primary h-100">
-        <div class="card-header bg-primary text-white">
-            <i class="bi bi-calculator me-1"></i>Resumo do pedido
+    <div class="card border-brand-200">
+        <div class="card-header bg-brand-50 border-brand-200">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-brand-600"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-xs font-semibold text-brand-700 uppercase tracking-wider">Resumo do pedido</span>
+            </div>
         </div>
         <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-7">Documento</dt>
-                <dd class="col-5 text-end">{{ tipo.nome }}</dd>
+            <dl class="grid grid-cols-2 gap-3 text-xs">
+                <dt class="text-slate-500">Documento</dt>
+                <dd class="col-span-1 text-slate-900">{{ tipo.nome }}</dd>
 
-                <dt class="col-7">Grau</dt>
-                <dd class="col-5 text-end">{{ grau_display }}</dd>
+                <dt class="text-slate-500">Grau</dt>
+                <dd class="text-slate-900">{{ grau_display }}</dd>
 
-                <dt class="col-7">Taxa base</dt>
-                <dd class="col-5 text-end">{{ taxa_base|floatformat:2 }} MT</dd>
+                <dt class="text-slate-500">Taxa base</dt>
+                <dd class="text-slate-900">{{ taxa_base|floatformat:2 }} MT</dd>
 
-                <dt class="col-7">IVA (5 %)</dt>
-                <dd class="col-5 text-end">{{ iva|floatformat:2 }} MT</dd>
+                <dt class="text-slate-500">IVA (5 %)</dt>
+                <dd class="text-slate-900">{{ iva|floatformat:2 }} MT</dd>
 
-                <dt class="col-7">Total a pagar</dt>
-                <dd class="col-5 text-end fw-bold">{{ total|floatformat:2 }} MT</dd>
+                <dt class="text-slate-500">Total a pagar</dt>
+                <dd class="col-span-2 font-bold text-brand-700">{{ total|floatformat:2 }} MT</dd>
 
-                <dt class="col-7">Prazo estimado</dt>
-                <dd class="col-5 text-end">
-                    {% if prazo_estimado_dias %}
-                        {{ prazo_estimado_dias }} dias úteis
-                    {% else %}
-                        Não definido
-                    {% endif %}
-                </dd>
+                <dt class="text-slate-500">Prazo estimado</dt>
+                <dd class="text-slate-900">{% if prazo_estimado_dias %}{{ prazo_estimado_dias }} dias úteis{% else %}<span class="text-slate-400">Não definido</span>{% endif %}</dd>
             </dl>
         </div>
     </div>
 {% else %}
-    <div id="resumo-pedido" class="card h-100">
-        <div class="card-header">
-            <i class="bi bi-calculator me-1"></i>Resumo do pedido
-        </div>
-        <div class="card-body d-flex align-items-center">
-            <p class="text-muted mb-0">
-                Escolhe o tipo de documento para veres a taxa total e o prazo
-                estimado para o teu grau.
-            </p>
+    <div class="card">
+        <div class="card-body py-8 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 mx-auto text-slate-400 mb-3"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-xs text-slate-500">Escolhe o tipo de documento para veres a taxa total e o prazo estimado para o teu grau.</p>
         </div>
     </div>
 {% endif %}

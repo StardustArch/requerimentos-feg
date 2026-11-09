@@ -430,7 +430,7 @@ class PaginasErroTests(TestCase):
 
         self.assertEqual(resposta.status_code, 403)
         self.assertContains(resposta, "Acesso negado", status_code=403)
-        self.assertContains(resposta, "ucm-topbar", status_code=403)
+        self.assertContains(resposta, "empty-state", status_code=403)
         self.assertContains(
             resposta,
             f'href="{reverse("home")}"',
@@ -446,7 +446,7 @@ class PaginasErroTests(TestCase):
             "Página não encontrada",
             status_code=404,
         )
-        self.assertContains(resposta, "ucm-topbar", status_code=404)
+        self.assertContains(resposta, "empty-state", status_code=404)
         self.assertContains(
             resposta,
             f'href="{reverse("home")}"',

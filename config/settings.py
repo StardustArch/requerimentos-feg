@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "contas",
     "pedidos",
+    "django_tailwind_cli",
 ]
 
 SITE_ID = 1
@@ -307,3 +308,13 @@ ATENDIMENTO_PRESENCIAL_INFO = os.environ.get(
     "ATENDIMENTO_PRESENCIAL_INFO",
     "Dirige-te à Secretaria da Faculdade e faz o pedido presencialmente.",
 )
+
+# ---------------------------------------------------------------------------
+# Tailwind CSS (django-tailwind-cli)
+# ---------------------------------------------------------------------------
+# O CSS compilado é gerado em static/css/app.css a partir de static/css/input.css.
+# O ficheiro tailwind.config.js fica na raiz do projeto.
+TAILWIND_CLI_PATH = None  # Usa o binário fornecido pelo django-tailwind-cli
+TAILWIND_OUTPUT_CSS = "static/css/app.css"
+TAILWIND_INPUT_CSS = "static/css/input.css"
+TAILWIND_CONFIG_FILE = "tailwind.config.js"

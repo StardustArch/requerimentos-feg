@@ -5,126 +5,94 @@
 
 {% block page_title %}Novo pedido{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'pedidos:meus_pedidos' %}">Meus pedidos</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Novo pedido</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <div class="row g-4">
-        <div class="col-12 col-lg-8">
+{% block breadcrumb %}
+{% endblock %}
+
+{% block conteudo_autenticado %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8">
             <div class="card">
-                <div class="card-body p-4">
-                    <h2 class="h4 card-title">
-                        <i class="bi bi-file-earmark-plus"></i>Pedir documento
-                    </h2>
-                    <p class="text-muted">
-                        Preenche os dados do pedido e anexa a cópia do BI e o
-                        comprovativo de pagamento. Ambos os anexos são
-                        obrigatórios.
+                <div class="card-body">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-brand-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <h2 class="text-sm font-semibold text-slate-900">Pedir documento</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">
+                        Preenche os dados do pedido e anexa a cópia do BI e o comprovativo de pagamento. Ambos os anexos são obrigatórios.
                     </p>
 
-                    <div class="alert alert-info py-2 small" role="note">
-                        <i class="bi bi-paperclip me-1"></i>
-                        Ficheiros aceites: <strong>{{ formatos_aceites }}</strong>,
-                        até <strong>{{ max_anexo_mb }} MB</strong> por ficheiro.
+                    <div class="alert-info mb-4">
+                        <div class="flex items-start gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-sky-500 flex-shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M12 22l5-5L12 2"></path></svg>
+                            <div class="text-xs text-slate-600">
+                                <strong class="text-slate-900">Ficheiros aceites:</strong> {{ formatos_aceites }}, até <strong>{{ max_anexo_mb }} MB</strong> por ficheiro.
+                            </div>
+                        </div>
                     </div>
 
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ form.non_field_errors }}
-                        </div>
+                        <div class="toast toast-error mb-4" role="alert">{{ form.non_field_errors }}</div>
                     {% endif %}
 
-                    <form method="post" enctype="multipart/form-data" novalidate>
+                    <form method="post" enctype="multipart/form-data" class="space-y-4">
                         {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label for="id_tipo" class="form-label">
-                                Tipo de documento <span class="text-danger">*</span>
-                            </label>
-                            <select name="tipo"
-                                    id="id_tipo"
-                                    class="form-select"
-                                    required
-                                    hx-get="{% url 'pedidos:resumo_pedido' %}"
-                                    hx-trigger="change"
-                                    hx-target="#resumo-pedido"
-                                    hx-swap="outerHTML"
-                                    hx-include="[name='tipo']">
+                        <div class="form-field">
+                            <label for="id_tipo" class="form-label">Tipo de documento <span class="text-rose-500">*</span></label>
+                            <select name="tipo" id="id_tipo" class="form-select" required>
                                 <option value="">Selecione o tipo de documento</option>
                                 {% for tipo in form.fields.tipo.queryset %}
-                                    <option value="{{ tipo.pk }}"
-                                            {% if form.tipo.value|stringformat:"s" == tipo.pk|stringformat:"s" %}selected{% endif %}>
-                                        {{ tipo.nome }}
-                                    </option>
+                                    <option value="{{ tipo.pk }}" {% if form.tipo.value|stringformat:"s" == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.nome }}</option>
                                 {% endfor %}
                             </select>
                             {% for erro in form.tipo.errors %}
-                                <div class="invalid-feedback d-block">{{ erro }}</div>
+                                <p class="form-error">{{ erro }}</p>
                             {% endfor %}
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.motivo.id_for_label }}" class="form-label">
-                                Motivo <span class="text-danger">*</span>
-                            </label>
+                        <div class="form-field">
+                            <label for="{{ form.motivo.id_for_label }}" class="form-label">Motivo <span class="text-rose-500">*</span></label>
                             {{ form.motivo }}
                             {% for erro in form.motivo.errors %}
-                                <div class="invalid-feedback d-block">{{ erro }}</div>
+                                <p class="form-error">{{ erro }}</p>
                             {% endfor %}
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.anexo_bi.id_for_label }}" class="form-label">
-                                {{ form.anexo_bi.label }} <span class="text-danger">*</span>
-                            </label>
+                        <div class="form-field">
+                            <label for="{{ form.anexo_bi.id_for_label }}" class="form-label">{{ form.anexo_bi.label }} <span class="text-rose-500">*</span></label>
                             {{ form.anexo_bi }}
-                            <div class="form-text">
-                                {{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.
-                            </div>
+                            <p class="form-hint">{{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.</p>
                             {% for erro in form.anexo_bi.errors %}
-                                <div class="invalid-feedback d-block">{{ erro }}</div>
+                                <p class="form-error">{{ erro }}</p>
                             {% endfor %}
                         </div>
 
-                        <div class="mb-4">
-                            <label for="{{ form.anexo_comprovativo.id_for_label }}" class="form-label">
-                                {{ form.anexo_comprovativo.label }} <span class="text-danger">*</span>
-                            </label>
+                        <div class="form-field">
+                            <label for="{{ form.anexo_comprovativo.id_for_label }}" class="form-label">{{ form.anexo_comprovativo.label }} <span class="text-rose-500">*</span></label>
                             {{ form.anexo_comprovativo }}
-                            <div class="form-text">
-                                {{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.
-                            </div>
+                            <p class="form-hint">{{ formatos_aceites }}; máximo {{ max_anexo_mb }} MB.</p>
                             {% for erro in form.anexo_comprovativo.errors %}
-                                <div class="invalid-feedback d-block">{{ erro }}</div>
+                                <p class="form-error">{{ erro }}</p>
                             {% endfor %}
                         </div>
 
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i>Submeter pedido
-                            </button>
-                            <a href="{% url 'pedidos:meus_pedidos' %}" class="btn btn-outline-secondary">
-                                Cancelar
-                            </a>
+                        <div class="flex gap-3 pt-4">
+                            <button type="submit" class="btn-primary">Submeter pedido</button>
+                            <a href="{% url 'pedidos:meus_pedidos' %}" class="btn-ghost">Cancelar</a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-lg-4">
+        <div class="lg:col-span-4">
             {% include "pedidos/_resumo_pedido.html" %}
         </div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
 {% endblock %}

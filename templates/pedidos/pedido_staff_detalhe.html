@@ -1,170 +1,175 @@
 {% extends "base.html" %}
 
-{% block title %}{{ pedido.protocolo }} · Fila de trabalho · UCM-FEG{% endblock %}
+{% block title %}{{ pedido.protocolo }} · Pedidos de Documentos · UCM-FEG{% endblock %}
 
 {% block page_title %}Detalhe do pedido{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'pedidos:fila' %}">Fila</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ pedido.protocolo }}</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <div class="row g-4">
-        <div class="col-12 col-xl-8">
+{% block breadcrumb %}
+{% endblock %}
+
+{% block conteudo_autenticado %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8">
             <div class="card">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <span class="fw-semibold">{{ pedido.protocolo }}</span>
-                    <span class="badge text-bg-primary">{{ pedido.get_estado_display }}</span>
+                <div class="card-header flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ pedido.protocolo }}</span>
+                        <span class="status-pill status-novo">{{ pedido.get_estado_display }}</span>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Estudante</dt>
-                        <dd class="col-sm-8">
-                            {{ pedido.estudante.get_full_name|default:pedido.estudante.username }}
-                        </dd>
+                    <dl class="grid grid-cols-2 gap-4 text-sm">
+                        <dt class="text-slate-500">Estudante</dt>
+                        <dd class="text-slate-900">{{ pedido.estudante.get_full_name|default:pedido.estudante.username }}</dd>
 
-                        <dt class="col-sm-4">Email</dt>
-                        <dd class="col-sm-8">{{ pedido.estudante.email|default:"—" }}</dd>
+                        <dt class="text-slate-500">Email</dt>
+                        <dd class="text-slate-700">{{ pedido.estudante.email|default:"—" }}</dd>
 
-                        <dt class="col-sm-4">Número de estudante</dt>
-                        <dd class="col-sm-8">{{ pedido.estudante.perfil.numero_estudante|default:"—" }}</dd>
+                        <dt class="text-slate-500">Número de estudante</dt>
+                        <dd class="text-slate-700">{{ pedido.estudante.perfil.numero_estudante|default:"—" }}</dd>
 
-                        <dt class="col-sm-4">Curso</dt>
-                        <dd class="col-sm-8">{{ pedido.estudante.perfil.curso|default:"—" }}</dd>
+                        <dt class="text-slate-500">Curso</dt>
+                        <dd class="text-slate-700">{{ pedido.estudante.perfil.curso|default:"—" }}</dd>
 
-                        <dt class="col-sm-4">Grau</dt>
-                        <dd class="col-sm-8">{{ pedido.get_grau_display }}</dd>
+                        <dt class="text-slate-500">Grau</dt>
+                        <dd class="text-slate-700">{{ pedido.get_grau_display }}</dd>
 
-                        <dt class="col-sm-4">Tipo de documento</dt>
-                        <dd class="col-sm-8">{{ pedido.tipo.nome }}</dd>
+                        <dt class="text-slate-500">Tipo de documento</dt>
+                        <dd class="text-slate-700">{{ pedido.tipo.nome }}</dd>
 
-                        <dt class="col-sm-4">Motivo</dt>
-                        <dd class="col-sm-8">{{ pedido.motivo|linebreaksbr }}</dd>
+                        <dt class="text-slate-500">Motivo</dt>
+                        <dd class="col-span-2 text-slate-700 whitespace-pre-line">{{ pedido.motivo }}</dd>
 
-                        <dt class="col-sm-4">Valor esperado</dt>
-                        <dd class="col-sm-8">{{ pedido.valor_total|floatformat:2 }} MT</dd>
+                        <dt class="text-slate-500">Valor esperado</dt>
+                        <dd class="text-slate-900 font-medium">{{ pedido.valor_total|floatformat:2 }} MT</dd>
 
-                        <dt class="col-sm-4">Etapa actual</dt>
-                        <dd class="col-sm-8">{{ pedido.etapa_simples }}</dd>
+                        <dt class="text-slate-500">Etapa actual</dt>
+                        <dd class="text-slate-700">{{ pedido.etapa_simples }}</dd>
 
-                        <dt class="col-sm-4">Submetido em</dt>
-                        <dd class="col-sm-8">{{ pedido.criado_em|date:"d/m/Y H:i" }}</dd>
+                        <dt class="text-slate-500">Submetido em</dt>
+                        <dd class="text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</dd>
                     </dl>
 
                     {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
-                        <div class="alert alert-danger mt-4 mb-0" role="alert">
-                            <strong>Motivo do indeferimento:</strong>
-                            {{ pedido.motivo_indeferimento|linebreaksbr }}
+                        <div class="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-100">
+                            <p class="text-xs text-rose-700"><strong class="font-semibold">Motivo do indeferimento:</strong> {{ pedido.motivo_indeferimento|linebreaksbr }}</p>
                         </div>
                     {% endif %}
-                </div>
-            </div>
 
-            {% if mostrar_valor_credito %}
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <i class="bi bi-cash-coin me-1"></i>Conferência de pagamento
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-sm-6">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="text-muted small text-uppercase">Valor esperado</div>
-                                    <div class="fs-4 fw-semibold">
-                                        {{ pedido.valor_total|floatformat:2 }} MT
+                    {% if mostrar_valor_credito %}
+                        <div class="mt-6 card">
+                            <div class="card-header bg-amber-50 border-amber-200">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-amber-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+                                    <span class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Conferência de pagamento</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-3 rounded-xl border border-amber-100 bg-amber-50">
+                                        <div class="text-xs text-amber-600 uppercase tracking-wider font-semibold mb-1">Valor esperado</div>
+                                        <div class="text-sm font-bold text-slate-900">{{ pedido.valor_total|floatformat:2 }} MT</div>
+                                    </div>
+                                    <div class="p-3 rounded-xl border border-amber-100 bg-amber-50">
+                                        <div class="text-xs text-amber-600 uppercase tracking-wider font-semibold mb-1">Comprovativo</div>
+                                        {% if comprovativo %}
+                                            <a href="{% url 'pedidos:anexo_download' comprovativo.pk %}" class="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 font-medium">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                Ver comprovativo
+                                            </a>
+                                        {% else %}
+                                            <p class="text-xs text-slate-500 mt-1">Sem comprovativo.</p>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="text-muted small text-uppercase">Comprovativo</div>
-                                    {% if comprovativo %}
-                                        <a href="{% url 'pedidos:anexo_download' comprovativo.pk %}"
-                                           class="btn btn-outline-primary mt-2">
-                                            <i class="bi bi-download me-1"></i>Ver comprovativo
-                                        </a>
-                                    {% else %}
-                                        <p class="mb-0 mt-2 text-muted">Sem comprovativo.</p>
-                                    {% endif %}
-                                </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-6 card">
+                        <div class="card-header bg-slate-50 border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-brand-600"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Histórico de decisões</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-            {% endif %}
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    <i class="bi bi-clock-history me-1"></i>Histórico de decisões
-                </div>
-                <div class="card-body">
-                    {% if decisoes %}
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Etapa</th>
-                                        <th scope="col">Resultado</th>
-                                        <th scope="col">Justificação</th>
-                                        <th scope="col">Autor</th>
-                                        <th scope="col">Data</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for decisao in decisoes %}
-                                        <tr>
-                                            <td>{{ decisao.get_etapa_display }}</td>
-                                            <td>{{ decisao.get_resultado_display }}</td>
-                                            <td>{{ decisao.justificacao|default:"—" }}</td>
-                                            <td>{{ decisao.decidido_por.username }}</td>
-                                            <td>{{ decisao.data_hora|date:"d/m/Y H:i" }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="card-body">
+                            {% if decisoes %}
+                                <div class="overflow-x-auto">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-32">Etapa</th>
+                                                <th class="w-24">Resultado</th>
+                                                <th>Justificação</th>
+                                                <th class="w-32">Autor</th>
+                                                <th class="w-32">Data</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for decisao in decisoes %}
+                                            <tr>
+                                                <td class="text-sm text-slate-700">{{ decisao.get_etapa_display }}</td>
+                                                <td class="text-sm">
+                                                    {% if decisao.resultado == "aprovado" %}
+                                                        <span class="status-pill status-novo">Aprovado</span>
+                                                    {% elif decisao.resultado == "indeferido" %}
+                                                        <span class="status-pill status-indeferido">Indeferido</span>
+                                                    {% elif decisao.resultado == "pronto" %}
+                                                        <span class="status-pill status-pronto">Pronto</span>
+                                                    {% else %}
+                                                        <span class="status-pill status-pronto">Entregue</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-sm text-slate-700">{{ decisao.justificacao|default:"—" }}</td>
+                                                <td class="text-sm text-slate-700">{{ decisao.decidido_por.username }}</td>
+                                                <td class="text-sm text-slate-700">{{ decisao.data_hora|date:"d/m/Y H:i" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-xs text-slate-500 text-center py-4">Ainda não há decisões registadas.</p>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <p class="text-muted mb-0">Ainda não há decisões registadas.</p>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-xl-4">
+        <div class="lg:col-span-4">
             <div class="card">
                 <div class="card-header">
-                    <i class="bi bi-paperclip me-1"></i>Anexos
+                    <h3 class="text-xs font-semibold text-slate-900 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-brand-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Anexos
+                    </h3>
                 </div>
                 <div class="card-body">
                     {% if anexos %}
-                        <ul class="list-group list-group-flush">
+                        <ul class="divide-y divide-slate-100">
                             {% for anexo in anexos %}
-                                <li class="list-group-item px-0">
-                                    <div class="d-flex align-items-center justify-content-between gap-2">
-                                        <span>
-                                            <i class="bi bi-file-earmark me-1"></i>
-                                            {{ anexo.get_tipo_display }}
-                                            {% if not anexo.visivel_ao_estudante %}
-                                                <span class="badge text-bg-secondary">Interno</span>
-                                            {% endif %}
-                                        </span>
-                                        <a href="{% url 'pedidos:anexo_download' anexo.pk %}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-download me-1"></i>Descarregar
-                                        </a>
-                                    </div>
-                                    <div class="small text-muted">{{ anexo.nome_original }}</div>
-                                </li>
+                            <li class="py-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-slate-600 flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="11" x2="12" y2="17"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                        {{ anexo.get_tipo_display }}
+                                        {% if not anexo.visivel_ao_estudante %}
+                                            <span class="ml-1 inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px]">Interno</span>
+                                        {% endif %}
+                                    </span>
+                                    <a href="{% url 'pedidos:anexo_download' anexo.pk %}" class="text-xs text-brand-600 hover:text-brand-700 font-medium">Descarregar</a>
+                                </div>
+                                <div class="text-[10px] text-slate-400 mt-1">{{ anexo.nome_original }}</div>
+                            </li>
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p class="text-muted mb-0">Sem anexos.</p>
+                        <p class="text-xs text-slate-500 text-center py-4">Sem anexos.</p>
                     {% endif %}
                 </div>
             </div>
@@ -172,77 +177,61 @@
             {% if pode_aprovar or pode_indeferir or pode_marcar_pronto or pode_marcar_entregue or pode_carregar_extracto %}
                 <div class="card mt-4">
                     <div class="card-header">
-                        <i class="bi bi-check2-square me-1"></i>Acções
+                        <span class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Acções</span>
                     </div>
-                    <div class="card-body d-grid gap-3">
-                        {% if pode_aprovar %}
-                            <form method="post" action="{% url 'pedidos:aprovar' pedido.pk %}">
-                                {% csrf_token %}
-                                <label for="id_justificacao" class="form-label">Justificação (opcional)</label>
-                                <textarea class="form-control mb-2"
-                                          id="id_justificacao"
-                                          name="justificacao"
-                                          rows="2"></textarea>
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-lg me-1"></i>Aprovar etapa
-                                </button>
-                            </form>
-                        {% endif %}
+                    <div class="card-body">
+                        <div class="space-y-3">
+                            {% if pode_aprovar %}
+                                <form method="post" action="{% url 'pedidos:aprovar' pedido.pk %}">
+                                    {% csrf_token %}
+                                    <div class="form-field mb-2">
+                                        <label for="id_justificacao" class="form-label">Justificação (opcional)</label>
+                                        <textarea class="form-input" id="id_justificacao" name="justificacao" rows="2" placeholder="Justificação opcional"></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full btn-primary btn-sm">Aprovar etapa</button>
+                                </form>
+                            {% endif %}
 
-                        {% if pode_marcar_pronto %}
-                            <form method="post" action="{% url 'pedidos:marcar_pronto' pedido.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-bag-check me-1"></i>Marcar como pronto
-                                </button>
-                            </form>
-                        {% endif %}
+                            {% if pode_indeferir %}
+                                <form method="post" action="{% url 'pedidos:indeferir' pedido.pk %}">
+                                    {% csrf_token %}
+                                    <div class="form-field mb-2">
+                                        <label for="id_motivo" class="form-label">Motivo do indeferimento</label>
+                                        <textarea class="form-input" id="id_motivo" name="motivo" rows="3" minlength="10" required placeholder="Motivo do indeferimento (mínimo 10 caracteres)"></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full btn-danger btn-sm">Indeferir pedido</button>
+                                </form>
+                            {% endif %}
 
-                        {% if pode_marcar_entregue %}
-                            <form method="post" action="{% url 'pedidos:marcar_entregue' pedido.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Registar entrega
-                                </button>
-                            </form>
-                        {% endif %}
+                            {% if pode_marcar_pronto %}
+                                <form method="post" action="{% url 'pedidos:marcar_pronto' pedido.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full btn-primary btn-sm">Marcar como pronto</button>
+                                </form>
+                            {% endif %}
 
-                        {% if pode_indeferir %}
-                            <form method="post" action="{% url 'pedidos:indeferir' pedido.pk %}">
-                                {% csrf_token %}
-                                <label for="id_motivo" class="form-label">Motivo do indeferimento</label>
-                                <textarea class="form-control mb-2"
-                                          id="id_motivo"
-                                          name="motivo"
-                                          rows="3"
-                                          minlength="10"
-                                          required></textarea>
-                                <button type="submit" class="btn btn-outline-danger w-100">
-                                    <i class="bi bi-x-lg me-1"></i>Indeferir pedido
-                                </button>
-                            </form>
-                        {% endif %}
+                            {% if pode_marcar_entregue %}
+                                <form method="post" action="{% url 'pedidos:marcar_entregue' pedido.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full btn-primary btn-sm">Registar entrega</button>
+                                </form>
+                            {% endif %}
 
-                        {% if pode_carregar_extracto %}
-                            <form method="post"
-                                  enctype="multipart/form-data"
-                                  action="{% url 'pedidos:carregar_extracto' pedido.pk %}">
-                                {% csrf_token %}
-                                <label for="id_ficheiro" class="form-label">Extracto bancário</label>
-                                <input type="file"
-                                       class="form-control mb-2"
-                                       id="id_ficheiro"
-                                       name="ficheiro"
-                                       accept=".pdf,.jpg,.jpeg,.png"
-                                       required>
-                                <button type="submit" class="btn btn-outline-primary w-100">
-                                    <i class="bi bi-upload me-1"></i>Carregar extracto
-                                </button>
-                            </form>
-                        {% endif %}
+                            {% if pode_carregar_extracto %}
+                                <form method="post" enctype="multipart/form-data" action="{% url 'pedidos:carregar_extracto' pedido.pk %}">
+                                    {% csrf_token %}
+                                    <div class="form-field mb-2">
+                                        <label for="id_ficheiro" class="form-label">Extracto bancário</label>
+                                        <input type="file" class="form-file" id="id_ficheiro" name="ficheiro" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    </div>
+                                    <button type="submit" class="w-full btn-ghost btn-sm">Carregar extracto</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
+    {% endif %}
 {% endblock %}

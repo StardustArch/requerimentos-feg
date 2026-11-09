@@ -4,44 +4,30 @@
 
 {% block page_title %}Número de estudante não identificado{% endblock %}
 
-{% block breadcrumb %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Perfil bloqueado</li>
-        </ol>
-    </nav>
+{% block page_header %}
 {% endblock %}
 
-{% block content %}
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-xl-6">
-            <div class="card border-danger">
-                <div class="card-body p-4">
-                    <h2 class="h4 card-title text-danger">
-                        <i class="bi bi-exclamation-triangle me-1"></i>Não foi possível identificar o teu número de estudante
-                    </h2>
+{% block breadcrumb %}
+{% endblock %}
 
-                    <p>
-                        Não foi possível identificar o teu número de estudante a
-                        partir do email
-                        <strong>{{ request.user.email|default:"(sem email)" }}</strong>.
-                        Contacta a Secretaria.
-                    </p>
-
-                    <p class="text-muted">
-                        Enquanto não tiveres um número de estudante associado ao
-                        teu email institucional, não podes submeter pedidos.
-                    </p>
-
-                    <p>
-                        {{ atendimento_presencial_info }}
-                    </p>
-
-                    <a href="{% url 'contas:logout' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-box-arrow-right me-1"></i>Sair
-                    </a>
+{% block conteudo_autenticado %}
+    <div class="max-w-md mx-auto">
+        <div class="card border-rose-200">
+            <div class="card-body">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-rose-500"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h2 class="text-sm font-semibold text-rose-700">Não foi possível identificar o teu número de estudante</h2>
                 </div>
+                <p class="text-sm text-slate-700 mb-3">
+                    Não foi possível identificar o teu número de estudante a partir do email
+                    <strong class="text-slate-900">{{ request.user.email|default:"(sem email)" }}</strong>.
+                    Contacta a Secretaria.
+                </p>
+                <p class="text-xs text-slate-500 mb-4">
+                    Enquanto não tiveres um número de estudante associado ao teu email institucional, não podes submeter pedidos.
+                </p>
+                <p class="text-xs text-slate-500 mb-4">{{ atendimento_presencial_info }}</p>
+                <a href="{% url 'contas:logout' %}" class="btn-ghost">Sair</a>
             </div>
         </div>
     </div>

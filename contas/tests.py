@@ -790,7 +790,6 @@ class LoginPageGoogleTests(TestCase):
             )
 
         self.assertContains(resposta, "Entrar com Google institucional")
-        self.assertContains(resposta, "bi-google")
         self.assertContains(
             resposta,
             "Acesso de pessoal e contas de demonstração",

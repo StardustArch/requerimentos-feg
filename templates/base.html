@@ -6,142 +6,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Pedidos de Documentos · UCM-FEG{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/ucm-theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="preload" as="font" href="{% static 'fonts/Inter-Regular.woff2' %}" type="font/woff2" crossorigin>
+    <link rel="preload" as="font" href="{% static 'fonts/Inter-Medium.woff2' %}" type="font/woff2" crossorigin>
+    <link rel="preload" as="font" href="{% static 'fonts/Inter-SemiBold.woff2' %}" type="font/woff2" crossorigin>
+    <link rel="preload" as="font" href="{% static 'fonts/Inter-Bold.woff2' %}" type="font/woff2" crossorigin>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <header class="ucm-topbar">
-        <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
-            <a class="d-flex align-items-center gap-2 text-white text-decoration-none" href="{% url 'home' %}">
-                <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" onerror="this.style.display='none';">
-                <span class="brand-title">Pedidos de Documentos · UCM-FEG</span>
-            </a>
+<body class="antialiased">
 
-            {% if request.user.is_authenticated %}
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                        <i class="bi bi-person-circle me-1"></i>{{ request.user.username }}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <span class="dropdown-item-text small text-muted">
-                                {% if request.user.perfil %}
-                                    {{ request.user.perfil.get_papel_display }}
-                                {% else %}
-                                    Utilizador
-                                {% endif %}
-                            </span>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="{% url 'contas:logout' %}" method="post" class="m-0">
-                                {% csrf_token %}
-                                <button type="submit" class="dropdown-item">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Terminar sessão
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+    {% if request.user.is_authenticated %}
+    <!-- Sidebar esquerda fixa -->
+    <aside class="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-40 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:bottom-auto md:right-auto md:z-auto" id="sidebar">
+        <div class="flex flex-col h-full">
+            <div class="flex items-center gap-3 px-5 py-6 border-b border-slate-100">
+                <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" class="h-8 w-auto">
+                <div>
+                    <div class="text-sm font-bold text-slate-900 tracking-tight">Pedidos</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider">Documentos · UCM-FEG</div>
                 </div>
-            {% endif %}
+            </div>
+
+            <nav class="flex-1 px-3 py-4 overflow-y-auto">
+                {% with vista=request.resolver_match.view_name %}
+                <ul class="space-y-1">
+                    <li>
+                        <a href="{% url 'home' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'home' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="home" %}
+                            <span>Início</span>
+                        </a>
+                    </li>
+                    {% if request.user.perfil.papel == "estudante" %}
+                    <li>
+                        <a href="{% url 'pedidos:novo_pedido' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:novo_pedido' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="file-plus" %}
+                            <span>Novo pedido</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'pedidos:meus_pedidos' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="list-check" %}
+                            <span>Meus pedidos</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <a href="{% url 'pedidos:fila' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:fila' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="inboxes" %}
+                            <span>Fila de trabalho</span>
+                        </a>
+                    </li>
+                    {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
+                    <li>
+                        <a href="{% url 'pedidos:pesquisa' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:pesquisa' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="search" %}
+                            <span>Pesquisa</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'painel' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'painel' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                            {% include "components/icon.html" with icon_name="bar-chart-line" %}
+                            <span>Painel</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+                {% endwith %}
+            </nav>
+
+            <div class="border-t border-slate-100 px-4 py-4">
+                <form action="{% url 'contas:logout' %}" method="post" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        {% include "components/icon.html" with icon_name="box-arrow-right" %}
+                        <span>Sair</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay do sidebar no mobile -->
+    <div class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.add('-translate-x-full'); this.classList.add('hidden');"></div>
+
+    <!-- Botão hambúrguer (mobile) -->
+    <button class="fixed left-4 top-4 z-50 p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden" id="sidebar-toggle" onclick="const s=document.getElementById('sidebar'); const o=document.getElementById('sidebar-overlay'); const isOpen=!s.classList.contains('-translate-x-full'); s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+
+    <!-- Barra superior fina -->
+    <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full md:w-[calc(100%-16rem)] h-14 bg-white border-b border-slate-200 z-30 flex items-center justify-between px-6 md:px-8 shadow-sm">
+        <div class="flex items-center gap-3 flex-1 max-w-xl">
+            <h1 class="text-sm font-semibold text-slate-900 truncate">{% block page_title %}Pedidos de Documentos · UCM-FEG{% endblock %}</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2">
+                <input type="search" placeholder="Pesquisar…" class="w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm focus:border-brand-600 focus:ring-1 focus:ring-brand-600 focus:bg-white outline-none">
+            </div>
+            <div class="flex items-center gap-3 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-xs text-slate-500">{{ request.user.first_name|default:request.user.username }}</span>
+                <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center overflow-hidden">
+                    <span class="text-xs font-bold text-brand-700">{{ request.user.username|slice:":1"|upper }}</span>
+                </div>
+                <div class="w-px h-4 bg-slate-200 mx-1"></div>
+                <form action="{% url 'contas:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-medium">Terminar sessão</button>
+                </form>
+            </div>
         </div>
     </header>
 
-    {% if request.user.is_authenticated %}
-        <nav class="ucm-nav navbar navbar-expand-lg navbar-dark">
-            <div class="container">
-                <button class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#ucm-navbar"
-                        aria-controls="ucm-navbar"
-                        aria-expanded="false"
-                        aria-label="Abrir menu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <!-- Área de conteúdo principal -->
+    <main class="md:pl-64 pt-20 pb-8 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                <div class="collapse navbar-collapse" id="ucm-navbar">
-                    {% with vista=request.resolver_match.view_name %}
-                        <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <a class="nav-link {% if vista == 'home' %}active{% endif %}"
-                                   {% if vista == 'home' %}aria-current="page"{% endif %}
-                                   href="{% url 'home' %}">Início</a>
-                            </li>
-                            {% if request.user.perfil.papel == "estudante" %}
-                                <li class="nav-item">
-                                    <a class="nav-link {% if vista == 'pedidos:novo_pedido' %}active{% endif %}"
-                                       {% if vista == 'pedidos:novo_pedido' %}aria-current="page"{% endif %}
-                                       href="{% url 'pedidos:novo_pedido' %}">Novo pedido</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}active{% endif %}"
-                                       {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}aria-current="page"{% endif %}
-                                       href="{% url 'pedidos:meus_pedidos' %}">Meus pedidos</a>
-                                </li>
-                            {% else %}
-                                <li class="nav-item">
-                                    <a class="nav-link {% if vista == 'pedidos:fila' %}active{% endif %}"
-                                       {% if vista == 'pedidos:fila' %}aria-current="page"{% endif %}
-                                       href="{% url 'pedidos:fila' %}">Fila</a>
-                                </li>
-                                {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
-                                    <li class="nav-item">
-                                        <a class="nav-link {% if vista == 'pedidos:pesquisa' %}active{% endif %}"
-                                           {% if vista == 'pedidos:pesquisa' %}aria-current="page"{% endif %}
-                                           href="{% url 'pedidos:pesquisa' %}">Pesquisa</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link {% if vista == 'painel' %}active{% endif %}"
-                                           {% if vista == 'painel' %}aria-current="page"{% endif %}
-                                           href="{% url 'painel' %}">Painel</a>
-                                    </li>
-                                {% endif %}
-                            {% endif %}
-                        </ul>
-                    {% endwith %}
-
-                    <form action="{% url 'contas:logout' %}" method="post" class="d-flex m-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-light">
-                            <i class="bi bi-box-arrow-right me-1"></i>Terminar sessão
+            <!-- Toasts (mensagens do Django) -->
+            <div class="toast-container z-50 pointer-events-none">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="toast toast-{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %}" role="alert">
+                        {{ message }}
+                        <button class="toast-dismiss" onclick="this.parentElement.remove()" aria-label="Fechar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                    </form>
-                </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
             </div>
-        </nav>
+
+            {% block breadcrumb %}
+            {% endblock %}
+
+            {% block page_header %}
+            {% endblock %}
+
+            {% block conteudo_autenticado %}
+            {% endblock %}
+
+        </div>
+    </main>
+    {% else %}
+    <!-- Layout sem autenticação (login, etc.) -->
+    <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        {% block conteudo_nao_autenticado %}
+        {% endblock %}
+    </div>
     {% endif %}
 
-    {% block page_header %}
-        <header class="ucm-page-header">
-            <div class="container">
-                <h1>{% block page_title %}Pedidos de Documentos · UCM-FEG{% endblock %}</h1>
-                {% block breadcrumb %}{% endblock %}
-            </div>
-        </header>
-    {% endblock %}
+    <script>
+        // Fechar sidebar no mobile ao clicar fora
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebar-toggle');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !toggle || !overlay) return;
+            if (!sidebar.classList.contains('-translate-x-full') && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        });
+    </script>
 
-    <main class="container py-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show"
-                     role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}{% endblock %}
-    </main>
-
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
