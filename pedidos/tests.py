@@ -30,37 +30,29 @@ class MediaTempMixin:
 
 @override_settings(
     IVA_PERCENT=Decimal("5"),
-    TAXA_FORMULARIO=Decimal("20"),
 )
 class TipoDocumentoTaxasTests(MediaTempMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo", stdout=StringIO())
 
-    def test_total_e_total_com_formulario_dos_sete_tipos(self):
+    def test_total_dos_sete_tipos(self):
         esperados = {
-            "Declaração simples": (Decimal("105.00"), Decimal("126.00")),
-            "Declaração de notas": (Decimal("210.00"), Decimal("231.00")),
-            "Certificado normal": (Decimal("2625.00"), Decimal("2646.00")),
-            "Certificado normal (2.ª via)": (
-                Decimal("5250.00"),
-                Decimal("5271.00"),
-            ),
-            "Certificado urgente": (Decimal("5250.00"), Decimal("5271.00")),
-            "Diploma normal": (Decimal("2100.00"), Decimal("2121.00")),
-            "Conteúdos programáticos": (Decimal("735.00"), Decimal("756.00")),
+            "Declaração simples": Decimal("105.00"),
+            "Declaração de notas": Decimal("210.00"),
+            "Certificado normal": Decimal("2625.00"),
+            "Certificado normal (2.ª via)": Decimal("5250.00"),
+            "Certificado urgente": Decimal("5250.00"),
+            "Diploma normal": Decimal("2100.00"),
+            "Conteúdos programáticos": Decimal("735.00"),
         }
 
         self.assertEqual(TipoDocumento.objects.count(), 7)
 
-        for nome, (total, total_com_formulario) in esperados.items():
+        for nome, total in esperados.items():
             with self.subTest(documento=nome):
                 documento = TipoDocumento.objects.get(nome=nome)
                 self.assertEqual(documento.total("licenciatura"), total)
-                self.assertEqual(
-                    documento.total_com_formulario("licenciatura"),
-                    total_com_formulario,
-                )
 
     def test_iva_usa_a_percentagem_configurada(self):
         documento = TipoDocumento.objects.get(nome="Certificado normal")
@@ -231,7 +223,7 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
         self.assertEqual(pedido.grau, self.estudante.perfil.grau)
         self.assertEqual(
             pedido.valor_total,
-            self.tipo.total_com_formulario(self.estudante.perfil.grau),
+            self.tipo.total(self.estudante.perfil.grau),
         )
         self.assertEqual(pedido.anexos.count(), 2)
         self.assertEqual(
@@ -480,7 +472,7 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
         self.assertEqual(pedido.valor_total, valor_inicial)
         self.assertNotEqual(
             pedido.valor_total,
-            self.tipo.total_com_formulario(self.estudante.perfil.grau),
+            self.tipo.total(self.estudante.perfil.grau),
         )
 
     def test_endpoint_htmx_devolve_a_taxa_certa_para_cada_grau(self):
@@ -502,7 +494,7 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
                 self.assertEqual(resposta.status_code, 200)
                 self.assertEqual(
                     resposta.context["total"],
-                    self.tipo.total_com_formulario(grau),
+                    self.tipo.total(grau),
                 )
                 self.assertEqual(
                     resposta.context["prazo_estimado_dias"],
@@ -537,6 +529,28 @@ class PedidoEstudanteTests(MediaTempMixin, TestCase):
             with self.subTest(caminho=caminho):
                 with self.assertRaises(Resolver404):
                     resolve(caminho)
+
+    def test_nao_aparece_formulario_em_contexto_de_taxa(self):
+        """A palavra 'formulário' não deve surgir ligada ao valor a pagar."""
+        self.client.get(reverse("pedidos:novo_pedido"))
+
+        resposta = self.client.get(
+            reverse("pedidos:pedido_detalhe", args=[self.estudante.pedidos.first().pk])
+        )
+        self.assertNotIn("formulário", resposta.content.decode())
+
+        resposta = self.client.get(reverse("pedidos:novo_pedido"))
+        self.assertNotIn("formulário", resposta.content.decode())
+
+        self.client.force_login(User.objects.get(username="credito1"))
+        pedido_credito = Pedido.objects.filter(
+            etapa_actual=Pedido.ETAPA_CREDITO
+        ).first()
+        if pedido_credito:
+            resposta = self.client.get(
+                reverse("pedidos:pedido_staff_detalhe", args=[pedido_credito.pk])
+            )
+            self.assertNotIn("formulário", resposta.content.decode())
 
 
 class AnexoDownloadStaffTests(MediaTempMixin, TestCase):
@@ -597,7 +611,6 @@ class AnexoDownloadStaffTests(MediaTempMixin, TestCase):
 
 @override_settings(
     IVA_PERCENT=Decimal("5"),
-    TAXA_FORMULARIO=Decimal("20"),
 )
 class ValidacaoAnexosTests(TestCase):
     def test_aceita_assinaturas_correspondentes(self):

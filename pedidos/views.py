@@ -64,7 +64,10 @@ def _contexto_resumo(utilizador, tipo):
     if tipo is not None and perfil is not None and perfil.grau:
         contexto.update(
             {
-                "total": tipo.total_com_formulario(perfil.grau),
+                "tipo": tipo,
+                "taxa_base": tipo.taxa_base(perfil.grau),
+                "iva": tipo.iva(perfil.grau),
+                "total": tipo.total(perfil.grau),
                 "prazo_estimado_dias": tipo.prazo_estimado_dias,
                 "grau": perfil.grau,
                 "grau_display": perfil.get_grau_display(),

@@ -11,7 +11,13 @@
                 <dt class="col-7">Grau</dt>
                 <dd class="col-5 text-end">{{ grau_display }}</dd>
 
-                <dt class="col-7">Taxa total</dt>
+                <dt class="col-7">Taxa base</dt>
+                <dd class="col-5 text-end">{{ taxa_base|floatformat:2 }} MT</dd>
+
+                <dt class="col-7">IVA (5 %)</dt>
+                <dd class="col-5 text-end">{{ iva|floatformat:2 }} MT</dd>
+
+                <dt class="col-7">Total a pagar</dt>
                 <dd class="col-5 text-end fw-bold">{{ total|floatformat:2 }} MT</dd>
 
                 <dt class="col-7">Prazo estimado</dt>
@@ -23,9 +29,6 @@
                     {% endif %}
                 </dd>
             </dl>
-            <p class="form-text mt-3 mb-0">
-                A taxa total já inclui o formulário e o IVA.
-            </p>
         </div>
     </div>
 {% else %}

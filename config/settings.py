@@ -270,7 +270,6 @@ SITE_URL = os.environ.get("SITE_URL", "")
 # ---------------------------------------------------------------------------
 
 IVA_PERCENT = Decimal(os.environ.get("IVA_PERCENT", "5"))
-TAXA_FORMULARIO = Decimal(os.environ.get("TAXA_FORMULARIO", "20"))
 
 
 # ---------------------------------------------------------------------------

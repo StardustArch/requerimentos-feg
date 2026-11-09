@@ -65,13 +65,6 @@ class TipoDocumento(models.Model):
         percentagem = _decimal(settings.IVA_PERCENT) / Decimal("100")
         return _arredondar(self.taxa_base(grau) * (Decimal("1") + percentagem))
 
-    def total_com_formulario(self, grau):
-        taxa_formulario = _decimal(settings.TAXA_FORMULARIO)
-        percentagem = _decimal(settings.IVA_PERCENT) / Decimal("100")
-        formulario_com_iva = taxa_formulario * (Decimal("1") + percentagem)
-        return _arredondar(self.total(grau) + formulario_com_iva)
-
-
 def caminho_anexo(instance, filename):
     """Devolve um caminho imprevisível para o ficheiro anexado.
 
@@ -187,7 +180,7 @@ class Pedido(models.Model):
             if not self.grau and self.estudante_id:
                 self.grau = self.estudante.perfil.grau
             # A taxa fica congelada no momento da criação do pedido.
-            self.valor_total = self.tipo.total_com_formulario(self.grau)
+            self.valor_total = self.tipo.total(self.grau)
 
         super().save(*args, **kwargs)
 

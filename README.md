@@ -46,7 +46,6 @@ também o executa.
 | `GOOGLE_CLIENT_SECRET` | vazio | Client Secret OAuth do Google. |
 | `ALLOWED_EMAIL_DOMAINS` | `ucm.ac.mz,estudante.ucm.ac.mz` | Domínios de email autorizados, separados por vírgulas. |
 | `IVA_PERCENT` | `5` | Percentagem de IVA aplicada às taxas. |
-| `TAXA_FORMULARIO` | `20` | Valor base do formulário de pedido, sem IVA. |
 | `MAX_ANEXO_MB` | `5` | Tamanho máximo de cada anexo, em megabytes. |
 | `DEMO_PASSWORD` | `demo123` | Palavra-passe das contas criadas por `seed_demo`. |
 | `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Backend de email. Em produção use o backend SMTP do Django. |
@@ -179,8 +178,14 @@ em dias úteis:
 | Diploma normal | 2000 | 3000 | 10000 | Não | 15 |
 | Conteúdos programáticos | 700 | 1400 | 2100 | Não | — |
 
-Os valores são base, sem IVA. O total é calculado com `IVA_PERCENT` e o
-formulário acrescenta `TAXA_FORMULARIO` (também com IVA).
+Os valores são base, sem IVA. O total é calculado com `IVA_PERCENT`.
+
+O valor de cada pedido fica congelado no momento da submissão, em
+`Pedido.valor_total`. Como a taxa do formulário (apenas aplicável ao pedido
+físico em papel) foi removida, os pedidos criados anteriormente mantêm o
+valor antigo que incluía essa taxa. Em desenvolvimento, refaça a base de dados
+com `python manage.py seed_demo` para obter pedidos com o valor correcto
+(só taxa do tipo + IVA).
 
 ## Anexos e ficheiros sensíveis
 
