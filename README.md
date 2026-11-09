@@ -27,6 +27,22 @@ python manage.py seed_demo
 python manage.py runserver
 ```
 
+### Compilar o CSS (Tailwind)
+
+O CSS é gerado com o Tailwind CLI standalone a partir de `static/css/input.css`:
+
+```bash
+# Build de produção (minificado)
+./static/tailwindcss -i static/css/input.css -o static/css/app.css --minify
+
+# Modo watch para desenvolvimento
+./static/tailwindcss -i static/css/input.css -o static/css/app.css --watch
+```
+
+O ficheiro `tailwind.config.js` na raiz define os tokens da marca (roxo UCM como
+`brand-700` com escala 50–900), neutros slate, e semânticas por estado do
+requerimento.
+
 A aplicação fica disponível em <http://127.0.0.1:8000/>.
 
 O catálogo de cursos pode ser carregado (ou actualizado) isoladamente com
