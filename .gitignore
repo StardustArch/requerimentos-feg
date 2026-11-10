@@ -28,3 +28,6 @@ backups/
 Thumbs.db
 .idea/
 .vscode/
+
+# Binário do Tailwind CLI (não deve ser versionado)
+static/tailwindcss
