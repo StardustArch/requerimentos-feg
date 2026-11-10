@@ -20,47 +20,47 @@
 
     {% if pedidos %}
         <p class="text-xs text-slate-500 mb-3">{{ page_obj.paginator.count }} pedido{{ page_obj.paginator.count|pluralize:"s" }}</p>
-        <div class="card overflow-hidden">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th class="w-32">Protocolo</th>
-                        <th>Tipo</th>
-                        <th class="w-40">Estado</th>
-                        <th class="w-40">Etapa</th>
-                        <th class="w-32">Data</th>
-                        <th class="w-20 text-right"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pedido in pedidos %}
-                    <tr>
-                        <td class="font-medium text-slate-900">{{ pedido.protocolo }}</td>
-                        <td class="text-slate-700">{{ pedido.tipo.nome }}</td>
-                        <td>
-                            {% if pedido.estado == "em_tratamento" %}
-                                <span class="status-pill status-novo">Em tratamento</span>
-                            {% elif pedido.estado == "indeferido" %}
-                                <span class="status-pill status-indeferido">Indeferido</span>
-                            {% elif pedido.estado == "pronto" %}
-                                <span class="status-pill status-pronto">Pronto</span>
-                            {% else %}
-                                <span class="status-pill status-pronto">Entregue</span>
-                            {% endif %}
-                            {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
-                                <p class="text-xs text-rose-600 mt-1">{{ pedido.motivo_indeferimento }}</p>
-                            {% endif %}
-                        </td>
-                        <td class="text-slate-700">{{ pedido.etapa_simples }}</td>
-                        <td class="text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                        <td class="text-right">
-                            <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Ver detalhe</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "components/table_wrap_open.html" %}
+        <table class="data-table w-full min-w-[40rem]">
+            <thead>
+                <tr>
+                    <th class="w-32 whitespace-nowrap">Protocolo</th>
+                    <th class="whitespace-nowrap">Tipo</th>
+                    <th class="w-40 whitespace-nowrap">Estado</th>
+                    <th class="w-40 whitespace-nowrap">Etapa</th>
+                    <th class="w-32 whitespace-nowrap">Data</th>
+                    <th class="w-20 text-right"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td class="font-medium text-slate-900 whitespace-nowrap">{{ pedido.protocolo }}</td>
+                    <td class="text-slate-700 whitespace-nowrap">{{ pedido.tipo.nome }}</td>
+                    <td>
+                        {% if pedido.estado == "em_tratamento" %}
+                            <span class="status-pill status-novo">Em tratamento</span>
+                        {% elif pedido.estado == "indeferido" %}
+                            <span class="status-pill status-indeferido">Indeferido</span>
+                        {% elif pedido.estado == "pronto" %}
+                            <span class="status-pill status-pronto">Pronto</span>
+                        {% else %}
+                            <span class="status-pill status-pronto">Entregue</span>
+                        {% endif %}
+                        {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
+                            <p class="text-xs text-rose-600 mt-1">{{ pedido.motivo_indeferimento }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="text-slate-700 whitespace-nowrap">{{ pedido.etapa_simples }}</td>
+                    <td class="text-slate-700 whitespace-nowrap">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                    <td class="text-right">
+                        <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Ver detalhe</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include "components/table_wrap_close.html" %}
 
         {% include "_paginacao.html" %}
     {% else %}

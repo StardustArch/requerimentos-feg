@@ -21,9 +21,12 @@
 
     {% if request.user.is_authenticated %}
     <!-- Sidebar esquerda fixa -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0">
+    <aside data-sidebar class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0" aria-hidden="true">
         <div class="flex flex-col h-full">
             <div class="flex h-14 items-center gap-3 border-b border-slate-100 px-4">
+                <button data-sidebar-close class="flex items-center gap-1 p-1.5 rounded-md text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Fechar menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
                 <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" class="h-8 w-8">
                 <div class="hidden sm:flex flex-col">
                     <div class="text-sm font-bold text-slate-900 tracking-tight">Pedidos</div>
@@ -35,40 +38,40 @@
                 {% with vista=request.resolver_match.view_name %}
                 <ul class="space-y-1">
                     <li>
-                        <a href="{% url 'home' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'home' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'home' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'home' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="home" size="5" %}
                             <span>Início</span>
                         </a>
                     </li>
                     {% if request.user.perfil.papel == "estudante" %}
                     <li>
-                        <a href="{% url 'pedidos:novo_pedido' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:novo_pedido' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'pedidos:novo_pedido' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:novo_pedido' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="file-plus" size="5" %}
                             <span>Novo pedido</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'pedidos:meus_pedidos' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'pedidos:meus_pedidos' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="list-check" size="5" %}
                             <span>Meus pedidos</span>
                         </a>
                     </li>
                     {% else %}
                     <li>
-                        <a href="{% url 'pedidos:fila' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:fila' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'pedidos:fila' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:fila' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="inboxes" size="5" %}
                             <span>Fila de trabalho</span>
                         </a>
                     </li>
                     {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
                     <li>
-                        <a href="{% url 'pedidos:pesquisa' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:pesquisa' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'pedidos:pesquisa' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:pesquisa' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="search" size="5" %}
                             <span>Pesquisa</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'painel' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'painel' %}bg-brand-50 text-brand-700{% endif %}">
+                        <a href="{% url 'painel' %}" data-sidebar-link class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'painel' %}bg-brand-50 text-brand-700{% endif %}">
                             {% include "components/icon.html" with icon_name="bar-chart-line" size="5" %}
                             <span>Painel</span>
                         </a>
@@ -91,12 +94,12 @@
         </div>
     </aside>
 
-    <div id="overlay" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden" onclick="fecharSidebar()"></div>
+    <div data-sidebar-overlay class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden"></div>
 
     <div class="lg:pl-64">
         <header class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-sm lg:px-8">
             <div class="flex items-center gap-2 lg:hidden">
-                <button id="sidebar-toggle" class="flex items-center gap-1 p-1.5 rounded-md text-slate-600 hover:bg-slate-100" onclick="alternarSidebar()">
+                <button data-sidebar-toggle class="flex items-center gap-1 p-1.5 rounded-md text-slate-600 hover:bg-slate-100" aria-expanded="false" aria-controls="sidebar" aria-label="Abrir menu">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
             </div>
@@ -153,40 +156,110 @@
 
     <script src="{% static 'vendor/unpoly/unpoly.min.js' %}"></script>
     <script>
-        up.framework.config.methodParam = '_method';
-        up.protocol.config.headers = {
-            'X-CSRFToken': document.querySelector('meta[name="up-csrf"]')?.content || '',
-        };
-        up.framework.config.layer = 'page';
+        // Configurar Unpoly com proteção contra versão incompatível
+        try {
+            if (window.up && window.up.framework) {
+                up.framework.config.methodParam = '_method';
+                up.protocol.config.headers = {
+                    'X-CSRFToken': document.querySelector('meta[name="up-csrf"]')?.content || '',
+                };
+                up.framework.config.layer = 'page';
+            }
+        } catch (e) {
+            console.warn('Unpoly configuração falhou:', e);
+        }
     </script>
 
     <script>
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const toggle = document.getElementById('sidebar-toggle');
-
-        function alternarSidebar() {
-            if (!sidebar || !overlay) return;
-            const aberto = !sidebar.classList.contains('-translate-x-full');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden', aberto);
-        }
-
-        function fecharSidebar() {
-            if (!sidebar || !overlay) return;
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        }
-
-        if (toggle) toggle.addEventListener('click', alternarSidebar);
-
-        document.addEventListener('click', function (e) {
-            if (!sidebar || !overlay || !toggle) return;
-            if (!sidebar.classList.contains('-translate-x-full') && !sidebar.contains(e.target) && !toggle.contains(e.target) && !overlay.contains(e.target)) {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+        // Sidebar mobile - delegação de eventos no document (funciona após navegações Unpoly)
+        (function () {
+            function getSidebar() {
+                return document.querySelector('[data-sidebar]');
             }
-        });
+            function getOverlay() {
+                return document.querySelector('[data-sidebar-overlay]');
+            }
+            function getToggle() {
+                return document.querySelector('[data-sidebar-toggle]');
+            }
+
+            function abrir() {
+                const sidebar = getSidebar();
+                const overlay = getOverlay();
+                const toggle = getToggle();
+                if (!sidebar || !overlay || !toggle) return;
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.setAttribute('aria-hidden', 'false');
+                overlay.classList.remove('hidden');
+                overlay.setAttribute('aria-hidden', 'false');
+                toggle.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function fechar() {
+                const sidebar = getSidebar();
+                const overlay = getOverlay();
+                const toggle = getToggle();
+                if (!sidebar || !overlay || !toggle) return;
+                sidebar.classList.add('-translate-x-full');
+                sidebar.setAttribute('aria-hidden', 'true');
+                overlay.classList.add('hidden');
+                overlay.setAttribute('aria-hidden', 'true');
+                toggle.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            // Delegação de clique: funciona mesmo após Unpoly substituir o DOM
+            document.addEventListener('click', function (e) {
+                const toggle = getToggle();
+                const sidebar = getSidebar();
+                const overlay = getOverlay();
+                if (!toggle || !sidebar || !overlay) return;
+
+                // Clique no botão hambúrguer
+                if (toggle.contains(e.target)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (sidebar.classList.contains('-translate-x-full')) {
+                        abrir();
+                    } else {
+                        fechar();
+                    }
+                    return;
+                }
+
+                // Clique no botão de fechar (X)
+                const closeBtn = e.target.closest('[data-sidebar-close]');
+                if (closeBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fechar();
+                    return;
+                }
+
+                // Clique no overlay
+                if (overlay.contains(e.target) && !sidebar.contains(e.target)) {
+                    fechar();
+                    return;
+                }
+
+                // Clique num link da sidebar
+                const link = e.target.closest('[data-sidebar-link]');
+                if (link) {
+                    fechar();
+                }
+            });
+
+            // Fechar com Esc
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    const sidebar = getSidebar();
+                    if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                        fechar();
+                    }
+                }
+            });
+        })();
     </script>
 
     {% block extra_js %}{% endblock %}
