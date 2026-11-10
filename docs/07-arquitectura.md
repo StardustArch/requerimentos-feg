@@ -18,7 +18,7 @@ serviços."
 | --- | --- | --- |
 | Configuração | `config/settings.py` | Settings, segurança, DB, cache, email, taxas |
 | Roteamento | `config/urls.py` | URLs raiz e inclusão das apps |
-| Apresentação | `templates/` + `pedidos/views.py`, `contas/views.py` | Templates Django, views, HTMX |
+| Apresentação | `templates/` + `pedidos/views.py`, `contas/views.py` | Templates Django, views, Unpoly (interacção parcial) |
 | Lógica de negócio | `pedidos/services.py` | Transições de etapa, decisões, permissões |
 | Dados | `pedidos/models.py`, `contas/models.py` | Modelos ORM, validações de campo |
 | Validação | `pedidos/validators.py` | Validação de anexos (extensão, tamanho, assinatura) |
@@ -33,9 +33,11 @@ serviços."
    ou Google institucional).
 2. **Perfil:** se o perfil não estiver completo, é redireccionado para
    `completar_perfil` (middleware `CompletarPerfilMiddleware`).
-3. **Submissão:** preenche tipo, motivo e anexos; o resumo da taxa é buscado
-   via HTMX (`/pedidos/resumo/`); ao submeter, o pedido é criado com
-   `valor_total` congelado e protocolo gerado.
+3. **Submissão:** preenche tipo, motivo e anexos; o resumo da taxa é
+   actualizado sem recarregar a página via Unpoly
+   (`up-target="#resumo-pedido"` + `up-autosubmit` no endpoint
+   `/pedidos/resumo/`); ao submeter, o pedido é criado com `valor_total`
+   congelado e protocolo gerado.
 4. **Tratamento:** secretaria aprova/indefer; crédito valida pagamento e
    carrega extracto; registo valida percurso académico (se exigir);
    secretaria final marca pronto; staff regista entrega.
@@ -99,8 +101,8 @@ graph TD
         WSGI[WSGI / ASGI]
         URLs[config/urls.py - Roteamento]
         Views[Views - contas + pedidos]
-        Templates[Templates Django + base.html]
-        Static[Static - Bootstrap, HTMX, Chart.js]
+        Templates[Templates Django + base.html + components/]
+        Static[Static - Tailwind CSS (app.css), Unpoly, Chart.js, fontes Inter]
     end
 
     subgraph Lógica
@@ -160,11 +162,23 @@ a implantação em produção é configurada via variáveis de ambiente e
 
 ## 7.6 Tecnologias de frontend
 
-- Bootstrap 5 (CSS e JS) — `static/vendor/bootstrap/`
-- Bootstrap Icons — ícones na interface
-- HTMX — resumo assíncrono da taxa no novo pedido
-- Chart.js — gráficos do painel de indicadores
-- CSS próprio — `static/css/ucm-theme.css` (tema UCM-FEG)
+- Tailwind CSS v4 (compilado localmente) — `static/css/app.css` gerado de
+  `static/css/input.css` via `tailwind.config.js` (tokens da marca UCM:
+  `brand-700` roxo `#2d2a8c`, escala 50–900; neutros slate; cores semânticas
+  por estado: novo=sky, crédito=amber, registo=violet, assinatura=orange,
+  pronto=emerald, indeferido=rose)
+- Fonte Inter local — `static/fonts/*.woff2` (`@font-face`)
+- Ícones Lucide SVG embutidos — `templates/components/icon.html`
+- Unpoly — `static/vendor/unpoly/unpoly.min.js/.css` (interacção parcial:
+  `up-target`, `up-autosubmit`, CSRF via meta tags `up-csrf`/`up-csrf-header`
+  e cabeçalho `X-CSRFToken`)
+- Chart.js — `static/vendor/chartjs/chart.umd.min.js` (gráficos do painel;
+  não alvo da migração)
+- CSS próprio — `static/css/ucm-theme.css` (mantido, não referenciado por
+  `base.html`)
+- Sem CDN: todos os activos de frontend são servidos a partir de `/static/`.
+  Os ficheiros físicos do Bootstrap e Bootstrap Icons permanecem em disco mas
+  não são referenciados por nenhum template.
 
 ---
 *Todos os factos são extraídos do código real do projecto.*

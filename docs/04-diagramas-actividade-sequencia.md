@@ -32,31 +32,35 @@ flowchart TD
 
 ## 4.2 Diagrama de sequência — Submissão de requerimento (estudante)
 
-**Fluxo:** o estudante preenche o formulário, o resumo da taxa é buscado
-via HTMX, e ao submeter o pedido é criado com valor congelado e anexos.
+**Fluxo:** o estudante preenche o formulário; ao mudar o tipo de documento, o
+resumo da taxa é actualizado sem recarregar a página via Unpoly
+(`up-target="#resumo-pedido"` + `up-autosubmit` no endpoint
+`/pedidos/resumo/`); ao submeter, o pedido é criado com valor congelado e
+anexos.
 
 **Referência:** `pedidos/views.py`, `novo_pedido` (linhas 90-146),
 `pedidos/models.py`, `Pedido.save` (linhas 176-189),
 `pedidos/forms.py`, `NovoPedidoForm` (linhas 9-45),
-`pedidos/validators.py`, `validar_anexo` (linhas 32-63).
+`pedidos/validators.py`, `validar_anexo` (linhas 32-63),
+`templates/pedidos/novo_pedido.html` (Unpoly `up-target`/`up-autosubmit`).
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant Estudante
     participant View as novo_pedido (views.py)
-    participant HTMX as HTMX /pedidos/resumo/
+    participant Unpoly as Unpoly /pedidos/resumo/
     participant Form as NovoPedidoForm (forms.py)
     participant Val as validar_anexo (validators.py)
     participant DB as Base de dados SQLite
 
     Estudante->>View: GET /pedidos/novo/
     View-->>Estudante: Formulário vazio
-    Estudante->>HTMX: change no select tipo
-    HTMX->>View: GET /pedidos/resumo/?tipo=X
+    Estudante->>Unpoly: change no select tipo (up-autosubmit)
+    Unpoly->>View: GET /pedidos/resumo/?tipo=X
     View->>DB: buscar TipoDocumento
-    View-->>HTMX: taxa base, IVA, total
-    HTMX-->>Estudante: resumo atualizado
+    View-->>Unpoly: taxa base, IVA, total
+    Unpoly-->>Estudante: resumo actualizado
     Estudante->>View: POST /pedidos/novo/ (tipo, motivo, anexos)
     View->>Form: validar dados e ficheiros
     Form->>Val: validar_anexo (extensão, tamanho, assinatura)

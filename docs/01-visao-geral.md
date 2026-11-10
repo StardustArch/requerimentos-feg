@@ -65,9 +65,11 @@ devolve o papel do utilizador autenticado. A função `e_admin(user)` (linhas
 | Django | 6.1.3 | `requirements.txt` linha 6 |
 | django-allauth | 65.21.1 | `requirements.txt` linha 7 |
 | Base de dados | SQLite 3 | `config/settings.py` linha 135 |
-| Frontend | Bootstrap 5 + Bootstrap Icons | `static/vendor/bootstrap/` |
-| Interatividade | HTMX | `static/vendor/htmx/htmx.min.js` |
+| Frontend | Tailwind CSS v4 (compilado localmente) | `static/css/app.css` (de `static/css/input.css` via `tailwind.config.js`) |
+| Interatividade | Unpoly | `static/vendor/unpoly/unpoly.min.js` |
 | Gráficos | Chart.js | `static/vendor/chartjs/chart.umd.min.js` |
+| Ícones | Lucide SVG (embutidos) | `templates/components/icon.html` |
+| Fonte | Inter local | `static/fonts/*.woff2` (`@font-face`) |
 | Autenticação social | Google OAuth (django-allauth) | `config/settings.py` linhas 235-262 |
 
 ## 1.5 Estrutura de pastas (resumo)
@@ -102,13 +104,25 @@ Pastas principais:
    ```bash
    python manage.py seed_demo
    ```
-5. Iniciar o servidor de desenvolvimento:
+5. Compilar o CSS do Tailwind (obrigatório antes de correr o servidor):
+   ```bash
+   python manage.py tailwind build
+   ```
+   Ou, diretamente com o binário CLI:
+   ```bash
+   ./static/tailwindcss -i static/css/input.css -o static/css/app.css --minify
+   ```
+   Para desenvolvimento em modo watch: `python manage.py tailwind watch`.
+   O ficheiro `tailwind.config.js` na raiz define os tokens da marca (roxo UCM como
+   `brand-700`, escala 50–900), neutros slate e cores semânticas por estado.
+6. Iniciar o servidor de desenvolvimento:
    ```bash
    python manage.py runserver
    ```
-6. Aceder a `http://127.0.0.1:8000/`.
+7. Aceder a `http://127.0.0.1:8000/`.
 
-**Evidência:** `README.md` secção "Instalação" (linhas 15-29), `manage.py`.
+**Evidência:** `README.md` secção "Compilar o CSS (Tailwind)" e "Instalação",
+`manage.py`, `config/settings.py` (`TAILWIND_*`), `tailwind.config.js`.
 
 ### Variáveis de ambiente relevantes
 

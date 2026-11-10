@@ -32,12 +32,18 @@ ficheiros existentes; nada é inventado.
 | requests | 2.34.2 | Requisições HTTP (allauth/social) |
 | sqlparse | 0.6.1 | Parsing SQL |
 
+**Nota:** `django-tailwind-cli` (v4.8.2, ambiente `.venv`) está instalado e listado em
+`INSTALLED_APPS` (`config/settings.py`), mas **não consta de `requirements.txt`** (deduzido
+da comparação do ficheiro com `pip show django-tailwind-cli`). O CSS é compilado com o
+binário Tailwind CLI (`static/tailwindcss`, não rastreado no Git) a partir de
+`static/css/input.css` para `static/css/app.css`.
+
 ## 3. Estrutura de pastas (comentada)
 
 ```
 requerimentos/
 ├── config/                 # Pacote de configuração do Django (settings, urls, wsgi, asgi)
-│   ├── settings.py         # Configurações globais (segurança, DB, cache, email, taxas, etc.)
+│   ├── settings.py         # Configurações globais (segurança, DB, cache, email, taxas, Tailwind)
 │   ├── urls.py             # URLs raiz do projecto
 │   ├── wsgi.py             # Ponto de entrada WSGI
 │   └── asgi.py             # Ponto de entrada ASGI
@@ -66,21 +72,34 @@ requerimentos/
 │   ├── management/         # Comandos: fazer_backup, seed_demo
 │   └── testes: tests.py, test_fase3.py, test_fase4.py
 ├── templates/              # Templates Django (herdam de base.html)
-│   ├── base.html           # Layout base com topbar UCM e navegação por papel
+│   ├── base.html           # Layout base: sidebar fixa + topbar, Tailwind + Unpoly
 │   ├── 403.html, 404.html, 500.html # Páginas de erro temáticas
+│   ├── components/         # Componentes reutilizáveis (icon.html, table_wrap*.html)
+│   │   ├── icon.html       # Ícones Lucide SVG embutidos
+│   │   ├── table_wrap.html, table_wrap_open.html, table_wrap_close.html # Tabelas com scroll
 │   ├── contas/             # home, login, completar_perfil, bloqueio_numero
 │   ├── pedidos/            # novo_pedido, meus_pedidos, pedido_detalhe, fila, pesquisa,
 │   │                       # pedido_staff_detalhe, painel, _resumo_pedido
 │   └── _paginacao.html     # Componente de paginação reutilizável
-├── static/                 # Ficheiros estáticos (CSS, imagens, vendor)
-│   ├── css/ucm-theme.css   # Tema visual UCM-FEG
+├── static/                 # Ficheiros estáticos (CSS, fontes, imagens, vendor)
+│   ├── css/input.css       # CSS de entrada do Tailwind (tokens, camadas)
+│   ├── css/app.css         # CSS compilado (Tailwind v4, minificado) — gerado via tailwind CLI
+│   ├── css/ucm-theme.css   # Tema visual UCM-FEG (mantido, não referenciado por base.html)
+│   ├── fonts/              # Fonte Inter local (4 variantes .woff2)
+│   │   ├── Inter-Regular.woff2, Inter-Medium.woff2, Inter-SemiBold.woff2, Inter-Bold.woff2
 │   ├── img/logo-ucm.png    # Logótipo UCM
-│   └── vendor/             # Bootstrap, Bootstrap Icons, HTMX, Chart.js
+│   ├── vendor/unpoly/      # Unpoly JS + CSS (interacção parcial, substitui HTMX)
+│   ├── vendor/bootstrap/   # Bootstrap 5 (ficheiros físicos mantidos, NÃO referenciados)
+│   ├── vendor/bootstrap-icons/ # Bootstrap Icons (mantido, NÃO referenciado)
+│   ├── vendor/chartjs/     # Chart.js (usado no painel, não alvo da migração)
+│   └── tailwindcss         # Binário Tailwind CLI (não rastreado no Git)
 ├── media/                  # Anexes enviados (não servido publicamente)
 ├── db.sqlite3              # Base de dados SQLite de desenvolvimento
 ├── manage.py               # Utilitário de linha de comandos do Django
 ├── requirements.txt        # Dependências Python
+├── tailwind.config.js      # Tokens de design Tailwind (marca UCM, cores por estado)
 ├── README.md               # Documentação de utilizador
+├── test_mobile_playwright.py # Teste Playwright mobile/desktop (não é teste Django)
 └── docs/                   # Dossier técnico (este documento)
 ```
 
@@ -145,7 +164,7 @@ requerimentos/
 | --- | --- | --- | --- | --- |
 | `novo_pedido` | `/pedidos/novo/` | `pedidos:novo_pedido` | Estudante | Submeter novo pedido com anexos |
 | `meus_pedidos` | `/pedidos/meus/` | `pedidos:meus_pedidos` | Estudante | Listar pedidos próprios (paginados) |
-| `resumo_pedido` | `/pedidos/resumo/` | `pedidos:resumo_pedido` | Estudante | Endpoint HTMX com resumo da taxa |
+| `resumo_pedido` | `/pedidos/resumo/` | `pedidos:resumo_pedido` | Estudante | Endpoint de resumo da taxa (alvo Unpoly `up-target`, substitui HTMX) |
 | `anexo_download` | `/pedidos/anexo/<pk>/` | `pedidos:anexo_download` | Vários | Descarregar anexo com verificação de permissões |
 | `pedido_detalhe` | `/pedidos/<pk>/` | `pedidos:pedido_detalhe` | Estudante (dono) | Ver detalhe do próprio pedido |
 | `fila` | `/pedidos/staff/fila/` | `pedidos:fila` | Staff | Fila de trabalho por departamento |
@@ -223,12 +242,19 @@ requerimentos/
 
 ## 13. Ficheiros estáticos
 
-- `static/css/ucm-theme.css` — Tema visual da UCM-FEG
+- `static/css/input.css` — CSS de entrada do Tailwind (tokens de marca UCM, neutros slate,
+  cores semânticas por estado, camadas base/componentes/utilitários)
+- `static/css/app.css` — CSS compilado (Tailwind v4, minificado), gerado a partir de
+  `input.css` via `tailwind.config.js`; referenciado em `templates/base.html`
+- `static/css/ucm-theme.css` — Tema visual UCM-FEG (mantido, não referenciado por `base.html`)
 - `static/img/logo-ucm.png` — Logótipo UCM
-- `static/vendor/bootstrap/` — Bootstrap 5 (CSS + JS)
-- `static/vendor/bootstrap-icons/` — Ícones Bootstrap
-- `static/vendor/htmx/htmx.min.js` — HTMX para resumo assíncrono da taxa
-- `static/vendor/chartjs/chart.umd.min.js` — Chart.js para gráficos do painel
+- `static/fonts/` — Fonte Inter local (4 variantes .woff2), declarada via `@font-face`
+- `static/vendor/unpoly/unpoly.min.js` — Unpoly (interacção parcial, substitui HTMX)
+- `static/vendor/unpoly/unpoly.min.css` — Estilos base do Unpoly
+- `static/vendor/bootstrap/` — Bootstrap 5 (ficheiros físicos mantidos, NÃO referenciados)
+- `static/vendor/bootstrap-icons/` — Bootstrap Icons (mantido, NÃO referenciado)
+- `static/vendor/chartjs/chart.umd.min.js` — Chart.js para gráficos do painel (não alvo da migração)
+- `static/tailwindcss` — Binário Tailwind CLI (não rastreado no Git)
 
 ## 14. Configuração de segurança (`config/settings.py`)
 
@@ -245,7 +271,9 @@ requerimentos/
 
 1. **Login**: clássico (`LoginViewComLimite`) com throttling por username (5 falhas) e IP (20 falhas) numa janela de 15 min; Google institucional com validação de domínio no servidor (`ContasSocialAccountAdapter`).
 2. **Perfil**: estudante deve completar curso (fixa o grau) e tem número de estudante extraído do email; middleware obriga a completar antes de aceder a outras páginas.
-3. **Submissão**: estudante preenche tipo, motivo e anexos (BI + comprovativo); HTMX mostra resumo da taxa; valor congelado em `Pedido.valor_total`.
+3. **Submissão**: estudante preenche tipo, motivo e anexos (BI + comprovativo); o resumo da taxa é
+   actualizado via Unpoly (`up-target="#resumo-pedido"` + `up-autosubmit` no select de tipo);
+   valor congelado em `Pedido.valor_total`.
 4. **Tratamento**: secretaria aprova/indefer → crédito valida pagamento → registo valida percurso académico (se aplicável) → secretaria final marca pronto → entrega física.
 5. **Decisões**: imutáveis (`Decisao.save`/`delete` levantam `DecisaoImutavelError`), com justificação, autor e data/hora.
 6. **Notificações**: email ao estudante quando pronto ou indeferido; falha de envio registada no log sem reverter a decisão.

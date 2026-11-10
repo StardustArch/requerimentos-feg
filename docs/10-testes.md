@@ -12,11 +12,19 @@ Found 96 test(s).
 System check identified no issues (0 silenced).
 ```
 
-**Resultado: 96 testes executados, 96 aprovados, 0 falhas, 0 erros.**
+**Resultado: 96 testes executados, 96 aprovados, 0 falhas, 0 erros.** Resultado
+confirmado em execução real (`python manage.py test`, 84.796s) na data da
+actualização deste dossier.
 
 A base de dados de teste é SQLite partilhada em memória
 (`file:memorydb_default?mode=memory&cache=shared`), configurada pelo Django
 em ambiente de teste.
+
+**Teste com nome legado (HTMX):** `pedidos/tests.py`,
+`test_endpoint_htmx_devolve_a_taxa_certa_para_cada_grau` — o nome do método
+mantém a referência a "htmx", mas o teste agora verifica o endpoint de resumo
+da taxa consumido por Unpoly (`pedidos/views.py` `resumo_pedido`). Não é um
+teste de frontend/JS; apenas valida a resposta do endpoint.
 
 ## 10.2 Ficheiros de teste
 
@@ -103,7 +111,7 @@ Classes principais (extraídas do ficheiro):
 | RF03 - Validação de anexos | `ValidacaoAnexosTests`, `PedidoEstudanteTests.test_anexos_invalidos...` |
 | RF04 - Valor congelado | `PedidoEstudanteTests.test_valor_total_fica_congelado...` |
 | RF05 - Protocolo | `PedidoEstudanteTests.test_submissao_valida...` |
-| RF06 - Resumo da taxa (HTMX) | `PedidoEstudanteTests.test_endpoint_htmx_devolve_a_taxa_certa...` |
+| RF06 - Resumo da taxa | `PedidoEstudanteTests.test_endpoint_htmx_devolve_a_taxa_certa...` (nome de teste legado; endpoint consumido por Unpoly) |
 | RF07 - Meus pedidos paginados | `PaginacaoTests.test_meus_pedidos_pagina_25...` |
 | RF08 - Detalhe do pedido | `PedidoEstudanteTests.test_submissao_valida...` (ver detalhe) |
 | RF09 - Download anexos | `PedidoEstudanteTests.test_dono_descarrega_anexos...` |

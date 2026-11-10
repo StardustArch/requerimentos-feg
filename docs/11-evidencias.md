@@ -18,7 +18,7 @@ criados por `python manage.py seed_demo` (`pedidos/management/commands/seed_demo
 | 7 | Completar perfil | `/contas/completar-perfil/` | `estudante1` | Escolha de curso por grau |
 | 8 | Bloqueio de número | (redireccionado) | estudante sem número | Mensagem: não foi possível identificar o número |
 | 9 | Novo pedido | `/pedidos/novo/` | `estudante1` | Formulário tipo/motivo/anexos + resumo da taxa |
-| 10 | Resumo da taxa (HTMX) | `/pedidos/resumo/?tipo=X` | `estudante1` | Taxa base, IVA, total, prazo |
+| 10 | Resumo da taxa (Unpoly) | `/pedidos/resumo/?tipo=X` | `estudante1` | Taxa base, IVA, total, prazo (actualizado sem recarregar a página) |
 | 11 | Meus pedidos | `/pedidos/meus/` | `estudante1` | Lista paginada de pedidos |
 | 12 | Detalhe do pedido | `/pedidos/<pk>/` | `estudante1` | Detalhe + anexos visíveis |
 | 13 | Fila (secretaria) | `/pedidos/staff/fila/?tab=novos` | `secretaria1` | Pedidos novos |
@@ -56,6 +56,31 @@ Passos numerados para gravar um vídeo do fluxo completo de um requerimento:
 18. Aceder ao painel como `secretaria1` ou `admin`; verificar cartões e gráficos.
 19. Tentar aceder a `/painel/` como `credito1`; verificar que dá 403 com tema UCM.
 20. Executar `python manage.py fazer_backup --manter 7`; verificar o ZIP criado.
+
+## 11.3 Estado de `docs/screens/`
+
+**Existem (5 PNG), gerados pelo teste Playwright `test_mobile_playwright.py`**
+(commit `438d4de` "corrigir sidebar mobile e scroll das tabelas"):
+
+| # | Ficheiro | Largura | O que mostra |
+|---|----------|---------|--------------|
+| 1 | `desktop_1440_inicial.png` | 1440px | Fila em desktop; sidebar visível |
+| 2 | `desktop_1440_completa.png` | 1440px | Página completa em desktop |
+| 3 | `mobile_390_inicial.png` | 390px | Fila em mobile; sidebar fechada |
+| 4 | `mobile_390_apos_clique.png` | 390px | Mobile após clicar no hambúrguer; sidebar aberta |
+| 5 | `mobile_390_completa.png` | 390px | Página completa em mobile |
+
+**Faltam (não existem em `docs/screens/`):**
+- Login (`/contas/login/`)
+- Página inicial (`/`) por papel: estudante, secretaria, crédito, registo, admin
+- Novo pedido (`/pedidos/novo/`) com resumo da taxa
+- Meus pedidos (`/pedidos/meus/`)
+- Detalhe do pedido (`/pedidos/<pk>/`)
+- Fila de trabalho (`/pedidos/staff/fila/`) por papel staff
+- Detalhe staff (`/pedidos/staff/<pk>/`)
+- Pesquisa (`/pedidos/staff/pesquisa/`)
+- Painel (`/painel/`)
+- Páginas de erro 403 / 404 / 500
 
 ---
 *Todos os factos são extraídos do código real do projecto.*

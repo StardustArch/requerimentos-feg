@@ -4,16 +4,35 @@
 
 | Componente | Ficheiro | Descrição |
 | --- | --- | --- |
-| Layout base | `templates/base.html` | HTML5, topbar UCM, navbar por papel, mensagens, Bootstrap 5 |
-| Tema CSS | `static/css/ucm-theme.css` | Estilos visuais da UCM-FEG |
-| Ícones | `static/vendor/bootstrap-icons/` | Bootstrap Icons (bi-*) |
-| JS interatividade | `static/vendor/htmx/htmx.min.js` | HTMX para resumo da taxa sem recarregar página |
-| Gráficos | `static/vendor/chartjs/chart.umd.min.js` | Chart.js para gráficos do painel |
-| Logótipo | `static/img/logo-ucm.png` | Logótipo UCM na topbar |
+| Layout base | `templates/base.html` | HTML5, sidebar fixa (drawer mobile com `data-sidebar-toggle`/overlay), barra superior `h-14`, toasts do Django, meta CSRF para Unpoly, Tailwind CSS |
+| Tema CSS / tokens de design | `static/css/app.css` + `static/css/input.css` + `tailwind.config.js` | Tailwind CSS v4 compilado: marca UCM (`brand-700` `#2d2a8c`, escala 50–900), neutros slate, cores semânticas por estado (novo=sky, crédito=amber, registo=violet, assinatura=orange, pronto=emerald, indeferido=rose), fonte Inter, raios e sombras |
+| Ícones | `templates/components/icon.html` | Ícones Lucide SVG embutidos localmente (uso: `{% include "components/icon.html" with icon_name="..." %}`) |
+| JS interatividade | `static/vendor/unpoly/unpoly.min.js` | Unpoly (substitui HTMX): `up-target="#resumo-pedido"` + `up-autosubmit` no select de tipo do novo pedido; CSRF via meta tags `up-csrf`/`up-csrf-header` e cabeçalho `X-CSRFToken` |
+| Gráficos | `static/vendor/chartjs/chart.umd.min.js` | Chart.js para gráficos do painel (não alvo da migração) |
+| Logótipo | `static/img/logo-ucm.png` | Logótipo UCM na sidebar e topbar |
+| Tabela com scroll | `templates/components/table_wrap.html` (+ `table_wrap_open/close`) | Wrapper `overflow-x-auto` para tabelas em ecrãs pequenos |
+| Componente paginação | `templates/_paginacao.html` | Paginação de 25 itens reutilizável |
 
-O design é responsivo (classes Bootstrap `col-*`, `container`, `navbar-expand-lg`).
+O design é responsivo com utilitários Tailwind (`lg:`, `md:`, `sm:`): sidebar fixa em
+desktop e drawer (oculta com `-translate-x-full`) em mobile; tabelas com scroll
+horizontal (`overflow-x-auto`) em ecrãs pequenos.
 
-**Ficheiro:** `templates/base.html` (linhas 1-147).
+**Ficheiro:** `templates/base.html`.
+
+## 9.2 Tokens de design (cores por estado)
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `brand-50 … brand-900` | `#f5f3ff … #161353` (roxo UCM, `brand-700 = #2d2a8c`) | Marca principal, botões primários, estado activo |
+| `slate-50 … slate-900` | `#f8fafc … #0f172a` | Fundo, textos, bordas neutros |
+| `estado-novo` | `#0ea5e9` (sky) | Pedido recém-criado / em tratamento |
+| `estado-credito` | `#f59e0b` (amber) | Etapa controlo de crédito |
+| `estado-registo` | `#8b5cf6` (violet) | Etapa registo académico |
+| `estado-assinatura` | `#f97316` (orange) | Etapa assinatura da direcção |
+| `estado-pronto` | `#10b981` (emerald) | Pedido pronto para levantamento |
+| `estado-indeferido` | `#f43f5e` (rose) | Pedido indeferido |
+
+Fonte: `tailwind.config.js` e `static/css/input.css` (`@theme`).
 
 ## 9.2 Telas por perfil
 
@@ -31,8 +50,8 @@ O design é responsivo (classes Bootstrap `col-*`, `container`, `navbar-expand-l
 | `contas/home.html` | `/` | Área do estudante: Novo pedido, Meus pedidos, Dados académicos | Navegar para funcionalidades |
 | `contas/completar_perfil.html` | `/contas/completar-perfil/` | Escolha de curso (agrupado por grau), telefone | Guardar perfil |
 | `contas/bloqueio_numero.html` | (redireccionamento) | Mensagem: número de estudante não identificado; contactar Secretaria | Sair |
-| `pedidos/novo_pedido.html` | `/pedidos/novo/` | Formulário: tipo, motivo, 2 anexos; resumo da taxa (HTMX) | Submeter pedido |
-| `pedidos/_resumo_pedido.html` | (include) | Taxa base, IVA, total a pagar, prazo estimado | — |
+| `pedidos/novo_pedido.html` | `/pedidos/novo/` | Formulário: tipo, motivo, 2 anexos; resumo da taxa actualizado via Unpoly (`up-autosubmit`) | Submeter pedido |
+| `pedidos/_resumo_pedido.html` | (include) | Taxa base, IVA, total a pagar, prazo estimado; alvo Unpoly `id="resumo-pedido"` | — |
 | `pedidos/meus_pedidos.html` | `/pedidos/meus/` | Lista paginada (25) de pedidos com estado e etapa | Ver detalhe, novo pedido |
 | `pedidos/pedido_detalhe.html` | `/pedidos/<pk>/` | Detalhe: tipo, grau, motivo, valor, etapa, anexos | Descarregar anexos |
 
@@ -80,7 +99,7 @@ O design é responsivo (classes Bootstrap `col-*`, `container`, `navbar-expand-l
 | `404.html` | Página não encontrada | "Não encontrámos esta página" | Voltar à página inicial |
 | `500.html` | Erro interno | "Algo não correu como esperado" | Voltar à página inicial |
 
-Todas usam o tema UCM (`ucm-topbar`, `ucm-page-header`) e não revelam
+Todas usam o tema visual UCM-FEG (Tailwind, cores da marca) e não revelam
 informação sensível.
 
 **Ficheiro:** `templates/403.html`, `404.html`, `500.html`.
@@ -96,6 +115,31 @@ informação sensível.
 - Paginação de 25 itens em `meus_pedidos` e `fila`.
 - Formulário de novo pedido mostra limites de anexo (tamanho e tipos
   aceites).
+
+## 9.5 Capturas de ecrã (ligação a `docs/screens/`)
+
+As capturas seguintes já existem em `docs/screens/` (geradas pelo teste
+Playwright `test_mobile_playwright.py`, commit `438d4de`):
+
+| Ficheiro | Largura | O que mostra |
+| --- | --- | --- |
+| `desktop_1440_inicial.png` | 1440px | Página de fila em desktop; sidebar visível à esquerda |
+| `desktop_1440_completa.png` | 1440px | Página completa em desktop |
+| `mobile_390_inicial.png` | 390px | Página de fila em mobile; sidebar fechada (esquerda negativa) |
+| `mobile_390_apos_clique.png` | 390px | Página em mobile após clicar no botão hambúrguer; sidebar aberta |
+| `mobile_390_completa.png` | 390px | Página completa em mobile |
+
+**Capturas em falta (não existem em `docs/screens/`):**
+- Login (`/contas/login/`)
+- Página inicial por perfil (`/`) para cada papel (estudante, secretaria, crédito, registo, admin)
+- Novo pedido (`/pedidos/novo/`) com resumo da taxa
+- Meus pedidos (`/pedidos/meus/`)
+- Detalhe do pedido (`/pedidos/<pk>/`)
+- Fila de trabalho (`/pedidos/staff/fila/`) por cada papel staff
+- Detalhe staff (`/pedidos/staff/<pk>/`)
+- Pesquisa (`/pedidos/staff/pesquisa/`)
+- Painel (`/painel/`)
+- Páginas de erro 403/404/500
 
 ---
 *Todos os factos são extraídos do código real do projecto.*

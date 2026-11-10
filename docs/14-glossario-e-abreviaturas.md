@@ -26,9 +26,14 @@
 | URL | Uniform Resource Locator | Endereço Web (`config/urls.py`, `pedidos/urls.py`) |
 | WSGI | Web Server Gateway Interface | Interface do servidor Web (`config/wsgi.py`) |
 | ASGI | Asynchronous Server Gateway Interface | Interface assíncrona (`config/asgi.py`) |
-| HTMX | HTML over HTTP | Interatividade no formulário de novo pedido (`static/vendor/htmx/`) |
+| HTMX | HTML over HTTP | Removido; substituído por Unpoly (não existe `static/vendor/htmx/`) (deduzido) |
+| Unpoly | Biblioteca de interacção parcial | `up-target`, `up-autosubmit`, CSRF via meta tags/cabeçalhos (`static/vendor/unpoly/`) |
 | Chart.js | Biblioteca de gráficos JavaScript | Gráficos do painel (`static/vendor/chartjs/`) |
-| Bootstrap | Framework CSS/JS | Estilos e componentes UI (`static/vendor/bootstrap/`) |
+| Tailwind CSS | Framework CSS utilitário (v4) | Compilado localmente: `static/css/app.css` a partir de `static/css/input.css` e `tailwind.config.js` |
+| Lucide | Conjunto de ícones SVG | Ícones embutidos em `templates/components/icon.html` |
+| Inter | Família de fontes | Fonte local em `static/fonts/*.woff2` (`@font-face`) |
+| Sidebar | Navegação lateral fixa | `templates/base.html` (drawer em mobile com `data-sidebar-toggle`/overlay) |
+| Bootstrap | Framework CSS/JS | Ficheiros mantidos em disco (`static/vendor/bootstrap/`), mas NÃO referenciados por nenhum template |
 | OAuth | Open Authorization | Protocolo de autorização (login Google) |
 | JWT | JSON Web Token | Token usado pelo allauth (`PyJWT` em `requirements.txt`) |
 
@@ -51,6 +56,12 @@
 | Signal | Mecanismo do Django para notificar eventos (ex.: criação de `Perfil` ao criar `User`) |
 | Seed | Carregamento de dados iniciais de demonstração (`seed_demo`) |
 | Backup | Cópia de segurança consistente da base de dados e ficheiros de media |
+| Unpoly | Biblioteca JavaScript para interacção parcial (substitui HTMX): `up-target`, `up-autosubmit`, CSRF via meta tags |
+| Tailwind CSS | Framework CSS utilitário (v4) que gera `static/css/app.css` a partir de `input.css` |
+| Sidebar | Navegação lateral fixa em desktop, drawer oculto em mobile (`templates/base.html`) |
+| Drawer | Painel lateral que desliza sobre o conteúdo em ecrãs pequenos |
+| Token de design | Variável de cor/espaçamento definida em `tailwind.config.js` / `input.css` (ex. `brand-700`, `estado-pronto`) |
+| Progressive enhancement | Abordagem onde links e formulários funcionam como HTML normal sem JavaScript; o Unpoly melhora a experiência quando disponível |
 | Valor congelado | Valor total do pedido fixado no momento da criação, não alterado se a taxa mudar |
 | Perfil completo | Perfil de estudante com curso e número de estudante preenchidos |
 

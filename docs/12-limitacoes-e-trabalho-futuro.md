@@ -13,6 +13,9 @@
 | O número de estudante é extraído automaticamente do email; se não for identificável, o estudante fica bloqueado sem poder submeter pedidos | `contas/models.py` `Perfil.save` (linhas 132-153); `contas/views.py` `completar_perfil` (linhas 170-178) |
 | O comando `fazer_backup` só suporta bases de dados SQLite | `pedidos/management/commands/fazer_backup.py` linhas 90-93 |
 | Não há reset de palavra-passe via email (apenas login clássico e Google) | `contas/views.py` (apenas login e logout) |
+| Dependência do build do Tailwind: `static/css/app.css` deve ser (re)gerado a partir de `static/css/input.css` com o Tailwind CLI (`python manage.py tailwind build` ou `./static/tailwindcss ...`) após alterações em `input.css` ou `tailwind.config.js`; sem este passo as mudanças de estilo não são reflectidas | `config/settings.py` (`TAILWIND_OUTPUT_CSS`, `TAILWIND_INPUT_CSS`, `TAILWIND_CONFIG_FILE`), `tailwind.config.js`, README secção "Compilar o CSS (Tailwind)" |
+| Uso limitado de Unpoly: apenas o select de tipo de documento no novo pedido usa `up-target`/`up-autosubmit`; os restantes formulários e links funcionam como HTML normal sem JavaScript (progressive enhancement) | `templates/pedidos/novo_pedido.html` (select `tipo`), `templates/base.html` (configuração `up.framework.config.layer = 'page'` e cabeçalho CSRF) |
+| Não existe cache-buster (parâmetro `?v=` ou similar) na referência a `static/css/app.css` em `templates/base.html`; após um build do Tailwind, navegadores podem manter a versão em cache do CSS | `templates/base.html` linha 9 (`<link rel="stylesheet" href="{% static 'css/app.css' %}">`) |
 | O admin do Django permite editar tipos de documento (taxas/prazos) em tempo real, o que pode afectar pedidos futuros mas não os já criados (valor congelado) | `pedidos/admin.py` `TipoDocumentoAdmin` (list_editable) |
 
 ## 12.2 Trabalho futuro plausível

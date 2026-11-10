@@ -29,7 +29,7 @@ que o implementa.
 | RF03 | Os anexos devem ser PDF, JPG/JPEG ou PNG, com tamanho máximo de `MAX_ANEXO_MB` (5 MB), validados por extensão, tamanho e assinatura binária. | `pedidos.validators.validar_anexo` | `pedidos/validators.py` linhas 32-63 |
 | RF04 | O valor do pedido fica congelado no momento da submissão (taxa do tipo + IVA). | `Pedido.save` | `pedidos/models.py` linhas 176-189 |
 | RF05 | O estudante recebe um protocolo no formato `REQ-AAAA-NNNNN`. | `Pedido.save` | `pedidos/models.py` linhas 187-189 |
-| RF06 | O estudante pode consultar o resumo da taxa (base, IVA, total) via HTMX ao escolher o tipo. | `pedidos.views.resumo_pedido` | `pedidos/views.py` linhas 151-161 |
+| RF06 | O estudante pode consultar o resumo da taxa (base, IVA, total) ao escolher o tipo, actualizado sem recarregar a página. | `pedidos.views.resumo_pedido` | `pedidos/views.py` linhas 151-161 |
 
 ### RF — Acompanhamento (Estudante)
 
@@ -98,7 +98,9 @@ que o implementa.
 | RNF01 | Segurança: apenas SQLite suportado para backup; ficheiros de media não são servidos publicamente. | `pedidos/management/commands/fazer_backup.py` linha 90-93; `config/settings.py` linhas 215-217 |
 | RNF02 | Segurança: HSTS, X-Frame-Options DENY, content-type nosniff, referrer policy, COOP. | `config/settings.py` linhas 48-59 |
 | RNF03 | Segurança: cookies de sessão e CSRF seguros em produção (`DEBUG=False`). | `config/settings.py` linhas 61-65 |
-| RNF04 | Usabilidade: tema visual UCM-FEG em todas as páginas (topbar, navbar, cards). | `templates/base.html` |
+| RNF04 | Usabilidade: tema visual UCM-FEG em todas as páginas (sidebar, topbar, cards, toasts), construído com Tailwind CSS. | `templates/base.html`, `static/css/app.css` |
+| RNF11 | Offline sem CDN: todos os activos de frontend (CSS, fontes, ícones SVG, Unpoly) são servidos localmente; não há dependência de redes de distribuição de conteúdo. | `templates/base.html` (liga apenas a `/static/`), `static/css/app.css`, `static/fonts/`, `static/vendor/unpoly/` |
+| RNF12 | Responsividade mobile: sidebar em drawer (oculta no mobile, aberta por botão hambúrguer com overlay) e tabelas com scroll horizontal em ecrãs pequenos. | `templates/base.html` (`data-sidebar`, `data-sidebar-toggle`, `lg:translate-x-0`), `templates/components/table_wrap.html` (`overflow-x-auto`) |
 | RNF05 | Usabilidade: páginas de erro 403/404/500 temáticas com link para a página inicial. | `templates/403.html`, `404.html`, `500.html` |
 | RNF06 | Usabilidade: paginação de 25 itens em `meus_pedidos` e `fila`. | `pedidos/views.py` linhas 172, 266-268 |
 | RNF07 | Portabilidade: configuração via variáveis de ambiente; mesma base de código em dev e produção. | `config/settings.py` (docstring, linhas 1-6) |
