@@ -15,61 +15,61 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="antialiased">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
     <meta name="up-csrf" content="{{ csrf_token }}">
     <meta name="up-csrf-header" content="X-CSRFToken">
 
     {% if request.user.is_authenticated %}
     <!-- Sidebar esquerda fixa -->
-    <aside class="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-40 transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static md:bottom-auto md:right-auto md:z-auto" id="sidebar">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:translate-x-0">
         <div class="flex flex-col h-full">
-            <div class="flex items-center gap-3 px-5 py-6 border-b border-slate-100">
-                <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" class="h-8 w-auto">
-                <div>
+            <div class="flex h-14 items-center gap-3 border-b border-slate-100 px-4">
+                <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" class="h-8 w-8">
+                <div class="hidden sm:flex flex-col">
                     <div class="text-sm font-bold text-slate-900 tracking-tight">Pedidos</div>
                     <div class="text-xs text-slate-500 uppercase tracking-wider">Documentos · UCM-FEG</div>
                 </div>
             </div>
 
-            <nav class="flex-1 px-3 py-4 overflow-y-auto">
+            <nav class="flex-1 space-y-1 overflow-y-auto p-3">
                 {% with vista=request.resolver_match.view_name %}
                 <ul class="space-y-1">
                     <li>
-                        <a href="{% url 'home' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'home' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="home" %}
+                        <a href="{% url 'home' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'home' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="home" size="5" %}
                             <span>Início</span>
                         </a>
                     </li>
                     {% if request.user.perfil.papel == "estudante" %}
                     <li>
-                        <a href="{% url 'pedidos:novo_pedido' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:novo_pedido' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="file-plus" %}
+                        <a href="{% url 'pedidos:novo_pedido' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:novo_pedido' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="file-plus" size="5" %}
                             <span>Novo pedido</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'pedidos:meus_pedidos' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="list-check" %}
+                        <a href="{% url 'pedidos:meus_pedidos' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:meus_pedidos' or vista == 'pedidos:pedido_detalhe' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="list-check" size="5" %}
                             <span>Meus pedidos</span>
                         </a>
                     </li>
                     {% else %}
                     <li>
-                        <a href="{% url 'pedidos:fila' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:fila' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="inboxes" %}
+                        <a href="{% url 'pedidos:fila' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:fila' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="inboxes" size="5" %}
                             <span>Fila de trabalho</span>
                         </a>
                     </li>
                     {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
                     <li>
-                        <a href="{% url 'pedidos:pesquisa' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'pedidos:pesquisa' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="search" %}
+                        <a href="{% url 'pedidos:pesquisa' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'pedidos:pesquisa' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="search" size="5" %}
                             <span>Pesquisa</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'painel' %}" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm {% if vista == 'painel' %}bg-brand-50 text-brand-700{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
-                            {% include "components/icon.html" with icon_name="bar-chart-line" %}
+                        <a href="{% url 'painel' %}" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 {% if vista == 'painel' %}bg-brand-50 text-brand-700{% endif %}">
+                            {% include "components/icon.html" with icon_name="bar-chart-line" size="5" %}
                             <span>Painel</span>
                         </a>
                     </li>
@@ -79,54 +79,53 @@
                 {% endwith %}
             </nav>
 
-            <div class="border-t border-slate-100 px-4 py-4">
+            <div class="border-t border-slate-100 px-4 py-3">
                 <form action="{% url 'contas:logout' %}" method="post" class="flex items-center gap-2">
                     {% csrf_token %}
-                    <button type="submit" class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                        {% include "components/icon.html" with icon_name="box-arrow-right" %}
-                        <span>Sair</span>
+                    <button type="submit" class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
+                        {% include "components/icon.html" with icon_name="box-arrow-right" size="5" %}
+                        <span>Terminar sessão</span>
                     </button>
                 </form>
             </div>
         </div>
     </aside>
 
-    <!-- Overlay do sidebar no mobile -->
-    <div class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.add('-translate-x-full'); this.classList.add('hidden');"></div>
+    <div id="overlay" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden" onclick="fecharSidebar()"></div>
 
-    <!-- Botão hambúrguer (mobile) -->
-    <button class="fixed left-4 top-4 z-50 p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden" id="sidebar-toggle" onclick="const s=document.getElementById('sidebar'); const o=document.getElementById('sidebar-overlay'); const isOpen=!s.classList.contains('-translate-x-full'); s.classList.toggle('-translate-x-full'); o.classList.toggle('hidden');">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-    </button>
-
-    <!-- Barra superior fina -->
-    <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full md:w-[calc(100%-16rem)] h-14 bg-white border-b border-slate-200 z-30 flex items-center justify-between px-6 md:px-8 shadow-sm">
-        <div class="flex items-center gap-3 flex-1 max-w-xl">
-            <h1 class="text-sm font-semibold text-slate-900 truncate">{% block page_title %}Pedidos de Documentos · UCM-FEG{% endblock %}</h1>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="hidden md:flex items-center gap-2">
-                <input type="search" placeholder="Pesquisar…" class="w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm focus:border-brand-600 focus:ring-1 focus:ring-brand-600 focus:bg-white outline-none">
+    <div class="lg:pl-64">
+        <header class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur-sm lg:px-8">
+            <div class="flex items-center gap-2 lg:hidden">
+                <button id="sidebar-toggle" class="flex items-center gap-1 p-1.5 rounded-md text-slate-600 hover:bg-slate-100" onclick="alternarSidebar()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
             </div>
-            <div class="flex items-center gap-3 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="text-xs text-slate-500">{{ request.user.first_name|default:request.user.username }}</span>
-                <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center overflow-hidden">
-                    <span class="text-xs font-bold text-brand-700">{{ request.user.username|slice:":1"|upper }}</span>
+            <div class="flex-1 max-w-xl">
+                <h1 class="text-sm font-semibold text-slate-900 truncate">{% block page_title %}Pedidos de Documentos · UCM-FEG{% endblock %}</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden md:flex items-center gap-2">
+                    <input type="search" placeholder="Pesquisar…" class="w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm focus:border-brand-600 focus:ring-1 focus:ring-brand-600 focus:bg-white outline-none">
                 </div>
-                <div class="w-px h-4 bg-slate-200 mx-1"></div>
-                <form action="{% url 'contas:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-medium">Terminar sessão</button>
-                </form>
+                <div class="flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-xs text-slate-500">{{ request.user.first_name|default:request.user.username }}</span>
+                    <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center overflow-hidden">
+                        <span class="text-xs font-bold text-brand-700">{{ request.user.username|slice:":1"|upper }}</span>
+                    </div>
+                    <div class="w-px h-3 bg-slate-200 mx-1"></div>
+                    <form action="{% url 'contas:logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-medium">Terminar sessão</button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
+    {% else %}
+    {% endif %}
 
-    <!-- Área de conteúdo principal -->
-    <main class="md:pl-64 pt-20 pb-8 min-h-screen">
+    <main class="{% if request.user.is_authenticated %}mx-auto w-full max-w-7xl px-4 py-6 lg:px-8{% else %}min-h-screen flex items-center justify-center bg-slate-50 px-4{% endif %}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <!-- Toasts (mensagens do Django) -->
             <div class="toast-container z-50 pointer-events-none">
                 {% if messages %}
                     {% for message in messages %}
@@ -146,43 +145,44 @@
             {% block page_header %}
             {% endblock %}
 
-            {% block conteudo_autenticado %}
+            {% block content %}
             {% endblock %}
 
         </div>
     </main>
-    {% else %}
-    <!-- Layout sem autenticação (login, etc.) -->
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-        {% block conteudo_nao_autenticado %}
-        {% endblock %}
-    </div>
-    {% endif %}
 
     <script src="{% static 'vendor/unpoly/unpoly.min.js' %}"></script>
     <script>
-        // Configurar CSRF para o Unpoly
         up.framework.config.methodParam = '_method';
         up.protocol.config.headers = {
             'X-CSRFToken': document.querySelector('meta[name="up-csrf"]')?.content || '',
         };
-
-        // Configurar a camada padrão como 'page' para substituição completa
         up.framework.config.layer = 'page';
-
-        // Progressive enhancement: Unpoly melhora links e campos existentes
-        // sem exigir atributos up-*. Links e campos funcionam como HTML normal
-        // sem JavaScript.
     </script>
 
     <script>
-        // Fechar sidebar no mobile ao clicar fora
-        document.addEventListener('click', function(e) {
-            const sidebar = document.getElementById('sidebar');
-            const toggle = document.getElementById('sidebar-toggle');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (!sidebar || !toggle || !overlay) return;
-            if (!sidebar.classList.contains('-translate-x-full') && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const toggle = document.getElementById('sidebar-toggle');
+
+        function alternarSidebar() {
+            if (!sidebar || !overlay) return;
+            const aberto = !sidebar.classList.contains('-translate-x-full');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden', aberto);
+        }
+
+        function fecharSidebar() {
+            if (!sidebar || !overlay) return;
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        if (toggle) toggle.addEventListener('click', alternarSidebar);
+
+        document.addEventListener('click', function (e) {
+            if (!sidebar || !overlay || !toggle) return;
+            if (!sidebar.classList.contains('-translate-x-full') && !sidebar.contains(e.target) && !toggle.contains(e.target) && !overlay.contains(e.target)) {
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
             }

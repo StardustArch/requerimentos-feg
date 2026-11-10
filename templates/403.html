@@ -10,20 +10,7 @@
 {% block page_header %}
 {% endblock %}
 
-{% block conteudo_autenticado %}
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-rose-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12h2v4H9z"></path></svg>
-        </div>
-        <h2 class="text-xl font-bold text-slate-900 mb-2">Não tem permissão para esta página</h2>
-        <p class="text-slate-500 text-sm mb-6 max-w-xs mx-auto">
-            A sua conta não tem acesso a esta área. Se acredita que se trata de um erro, contacte a Secretaria da Faculdade.
-        </p>
-        <a href="{% url 'home' %}" class="btn-primary">Voltar à página inicial</a>
-    </div>
-{% endblock %}
-
-{% block conteudo_nao_autenticado %}
+{% block content %}
     <div class="empty-state">
         <div class="empty-state-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-rose-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12h2v4H9z"></path></svg>

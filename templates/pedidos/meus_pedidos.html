@@ -10,7 +10,7 @@
 {% block breadcrumb %}
 {% endblock %}
 
-{% block conteudo_autenticado %}
+{% block content %}
     <div class="flex items-center justify-between gap-4 mb-4">
         <div>
             <h2 class="text-sm font-semibold text-slate-900">Pedidos submetidos</h2>
@@ -29,7 +29,7 @@
                         <th class="w-40">Estado</th>
                         <th class="w-40">Etapa</th>
                         <th class="w-32">Data</th>
-                        <th class="w-20 text-end"></th>
+                        <th class="w-20 text-right"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,7 +53,7 @@
                         </td>
                         <td class="text-slate-700">{{ pedido.etapa_simples }}</td>
                         <td class="text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                        <td class="text-end">
+                        <td class="text-right">
                             <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Ver detalhe</a>
                         </td>
                     </tr>

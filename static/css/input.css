@@ -446,13 +446,25 @@
 }
 
 @layer utilities {
-  .max-w-7xl {
-    max-width: 32rem;
-  }
   .w-64 {
     width: 16rem;
   }
   .h-14 {
     height: 3.5rem;
   }
+}
+
+/* Classes utilitárias customizadas não geradas automaticamente pelo Tailwind v4 */
+.group {}
+.hover\:text-rose-800:hover {
+  color: var(--color-rose-800);
+}
+.focus\:border-brand-600:focus {
+  border-color: var(--color-brand-600);
+}
+.focus\:ring-1:focus {
+  box-shadow: 0 0 0 1px var(--tw-ring-color);
+}
+.focus\:ring-brand-600:focus {
+  --tw-ring-color: var(--color-brand-600);
 }

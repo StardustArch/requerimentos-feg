@@ -10,7 +10,7 @@
 {% block breadcrumb %}
 {% endblock %}
 
-{% block conteudo_autenticado %}
+{% block content %}
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -72,7 +72,7 @@
                         <th class="w-40">Estado</th>
                         <th class="w-40">Etapa</th>
                         <th class="w-32">Submetido</th>
-                        <th class="w-20 text-end"></th>
+                        <th class="w-20 text-right"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,7 +97,7 @@
                         </td>
                         <td class="text-sm text-slate-700">{{ pedido.etapa_simples }}</td>
                         <td class="text-sm text-slate-700">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                        <td class="text-end">
+                        <td class="text-right">
                             <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Abrir</a>
                         </td>
                     </tr>

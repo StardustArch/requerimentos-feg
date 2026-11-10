@@ -1,61 +1,58 @@
 {% extends "base.html" %}
+{% load static %}
 {% load socialaccount %}
 
 {% block title %}Login · Pedidos de Documentos · UCM-FEG{% endblock %}
 
 {% block page_header %}{% endblock %}
 
-{% block conteudo_nao_autenticado %}
-    <div class="max-w-md mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <div class="text-center mb-6">
-                    <div class="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center mx-auto mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-brand-700"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    </div>
-                    <h1 class="text-xl font-bold text-slate-900 mb-1">Pedidos de Documentos</h1>
-                    <p class="text-sm text-slate-500">Universidade Católica de Moçambique – FEG</p>
+{% block content %}
+    <div class="w-full max-w-md">
+        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div class="text-center mb-6">
+                <img src="{% static 'img/logo-ucm.png' %}" alt="Logótipo UCM" class="h-16 w-16 mx-auto mb-3">
+                <h1 class="text-xl font-bold text-slate-900 mb-1">Pedidos de Documentos</h1>
+                <p class="text-sm text-slate-500">Universidade Católica de Moçambique – FEG</p>
+            </div>
+
+            {% if google_oauth_enabled %}
+                <a href="{% provider_login_url 'google' next=next %}" class="w-full flex items-center justify-center gap-2 btn-ghost mb-4">
+                    {% include "components/icon.html" with icon_name="bi" size="5" %}
+                    <span class="text-rose-600">Entrar com Google institucional</span>
+                </a>
+                <div class="text-center text-xs text-slate-400 mb-6">ou</div>
+            {% endif %}
+
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Acesso de pessoal e contas de demonstração</h2>
+
+            {% if bloqueado %}
+                <div class="toast toast-error mb-4" role="alert">
+                    {{ mensagem_bloqueio }}
+                </div>
+            {% elif form.errors %}
+                <div class="toast toast-error mb-4" role="alert">
+                    Utilizador ou palavra-passe incorretos. Tente novamente.
+                </div>
+            {% endif %}
+
+            <form method="post" class="space-y-3">
+                {% csrf_token %}
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <div class="form-field">
+                    <label for="id_username" class="form-label">Nome de utilizador</label>
+                    <input type="text" class="form-input" id="id_username" name="username" value="{{ form.username.value|default_if_none:'' }}" autocomplete="username" autofocus required>
                 </div>
 
-                {% if google_oauth_enabled %}
-                    <a href="{% provider_login_url 'google' next=next %}" class="w-full flex items-center justify-center gap-2 btn-ghost mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-rose-600"><path d="M12 15V3a9 9 0 0 0-9 9m9-9a9 9 0 0 1 9 9v-3a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6h6a9 9 0 0 0-9-9M3 3a9 9 0 0 1 9-9h6a9 9 0 0 1 9 9v3a9 9 0 0 1-9 9H3a9 9 0 0 1-9-9V3z"></path></svg>
-                        <span>Entrar com Google institucional</span>
-                    </a>
-                    <div class="text-center text-xs text-slate-400 mb-6">ou</div>
-                {% endif %}
+                <div class="form-field">
+                    <label for="id_password" class="form-label">Palavra-passe</label>
+                    <input type="password" class="form-input" id="id_password" name="password" autocomplete="current-password" required>
+                </div>
 
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Acesso de pessoal e contas de demonstração</h2>
-
-                {% if bloqueado %}
-                    <div class="toast toast-error mb-4" role="alert">
-                        {{ mensagem_bloqueio }}
-                    </div>
-                {% elif form.errors %}
-                    <div class="toast toast-error mb-4" role="alert">
-                        Utilizador ou palavra-passe incorretos. Tente novamente.
-                    </div>
-                {% endif %}
-
-                <form method="post" class="space-y-3">
-                    {% csrf_token %}
-                    {% if next %}
-                        <input type="hidden" name="next" value="{{ next }}">
-                    {% endif %}
-
-                    <div class="form-field">
-                        <label for="id_username" class="form-label">Nome de utilizador</label>
-                        <input type="text" class="form-input" id="id_username" name="username" value="{{ form.username.value|default_if_none:'' }}" autocomplete="username" autofocus required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="id_password" class="form-label">Palavra-passe</label>
-                        <input type="password" class="form-input" id="id_password" name="password" autocomplete="current-password" required>
-                    </div>
-
-                    <button type="submit" class="w-full btn-primary">Entrar</button>
-                </form>
-            </div>
+                <button type="submit" class="w-full btn btn-primary">Entrar</button>
+            </form>
         </div>
     </div>
 {% endblock %}
