@@ -173,6 +173,142 @@ class Pedido(models.Model):
     def dias_na_fila(self):
         return max((timezone.now() - self.criado_em).days, 0)
 
+    # Rótulos curtos para a barra de progresso, por ordem de ETAPAS_APROVACAO.
+    ROTULO_ETAPA = {
+        ETAPA_SECRETARIA_RECEPCAO: "Secretaria",
+        ETAPA_CREDITO: "Crédito",
+        ETAPA_REGISTO: "Registo",
+        ETAPA_SECRETARIA_FINAL: "Assinatura",
+    }
+
+    @property
+    def progresso(self):
+        """Devolve os dados da barra de progresso por pedido.
+
+        As etapas aplicáveis são as de ETAPAS_APROVACAO, saltando o Registo
+        quando TipoDocumento.passa_registo_academico for False. O histórico
+        vem de Decisao (pedido.decisoes), nunca de deduções por texto.
+
+        Retorna um dicionário com:
+          segmentos: lista de {valor, nome, estado} (estado in
+            concluida | actual | pendente | recusada)
+          indice_actual: índice da etapa atual (ou None)
+          total: número de etapas aplicáveis
+          rotulo: texto curto ("etapa X de Y", "Pronto para levantamento",
+            "Entregue", "Indeferido")
+        """
+        from .services import ETAPAS_APROVACAO
+
+        # Etapas de aprovacao (ETAPAS_APROVACAO) mais a etapa final de
+        # assinatura (secretaria_final), que nao e de aprovacao mas fecha o
+        # fluxo. Nenhuma outra lista de etapas e inventada.
+        base = list(ETAPAS_APROVACAO)
+        if not self.tipo.passa_registo_academico:
+            base = [v for v in base if v != self.ETAPA_REGISTO]
+        valores = base + [self.ETAPA_SECRETARIA_FINAL]
+
+        total = len(valores)
+        estado = self.estado
+        etapa_atual = self.etapa_actual
+        indeferido_na_etapa = self.indeferido_na_etapa or ""
+
+        # Histórico de decisões por etapa (fonte de datas para a variante full).
+        decisoes_por_etapa = {
+            d.etapa: d for d in self.decisoes.all()
+        }
+
+        try:
+            indice_actual = valores.index(etapa_atual)
+        except ValueError:
+            indice_actual = None
+
+        indefer_idx = (
+            valores.index(indeferido_na_etapa)
+            if indeferido_na_etapa in valores
+            else None
+        )
+
+        if estado == self.ESTADO_EM_TRATAMENTO and indice_actual is not None:
+            aria_valuenow = indice_actual
+            etapa_actual_nome = self.ROTULO_ETAPA[valores[indice_actual]]
+        elif estado in (self.ESTADO_PRONTO, self.ESTADO_ENTREGUE):
+            aria_valuenow = total
+            etapa_actual_nome = None
+        elif estado == self.ESTADO_INDEFERIDO and indefer_idx is not None:
+            aria_valuenow = indefer_idx
+            etapa_actual_nome = valores[indefer_idx]
+        else:
+            aria_valuenow = 0
+            etapa_actual_nome = None
+
+        segmentos = []
+        for i, valor in enumerate(valores):
+            nome = self.ROTULO_ETAPA[valor]
+            concluida = actual = pendente = recusada = False
+
+            if estado == self.ESTADO_INDEFERIDO and indefer_idx is not None:
+                if i == indefer_idx:
+                    recusada = True
+                elif i < indefer_idx:
+                    concluida = True
+                else:
+                    pendente = True
+            elif estado in (self.ESTADO_PRONTO, self.ESTADO_ENTREGUE):
+                concluida = True
+            elif estado == self.ESTADO_EM_TRATAMENTO and indice_actual is not None:
+                if i < indice_actual:
+                    concluida = True
+                elif i == indice_actual:
+                    actual = True
+                else:
+                    pendente = True
+            else:
+                pendente = True
+
+            decisao = decisoes_por_etapa.get(valor)
+            segmentos.append(
+                {
+                    "valor": valor,
+                    "nome": nome,
+                    "estado": (
+                        "concluida"
+                        if concluida
+                        else "actual"
+                        if actual
+                        else "recusada"
+                        if recusada
+                        else "pendente"
+                    ),
+                    "concluida": concluida,
+                    "actual": actual,
+                    "pendente": pendente,
+                    "recusada": recusada,
+                    "decisao": decisao,
+                }
+            )
+
+        return {
+            "segmentos": segmentos,
+            "indice_actual": indice_actual,
+            "total": total,
+            "aria_valuenow": aria_valuenow,
+            "etapa_actual_nome": etapa_actual_nome,
+            "rotulo": self._rotulo_progresso(
+                estado, indice_actual, total, indefer_idx, valores
+            ),
+        }
+
+    def _rotulo_progresso(self, estado, indice_actual, total, indefer_idx, valores):
+        if estado == self.ESTADO_PRONTO:
+            return "Pronto para levantamento"
+        if estado == self.ESTADO_ENTREGUE:
+            return "Entregue"
+        if estado == self.ESTADO_INDEFERIDO and indefer_idx is not None:
+            return f"Indeferido em {valores[indefer_idx]}"
+        if estado == self.ESTADO_EM_TRATAMENTO and indice_actual is not None:
+            return f"etapa {indice_actual + 1} de {total}"
+        return ""
+
     def save(self, *args, **kwargs):
         e_novo = self._state.adding
 

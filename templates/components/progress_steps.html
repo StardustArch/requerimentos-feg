@@ -1,0 +1,83 @@
+{# Componente de barra de progresso por pedido.
+#
+# Renderizado pela simple tag progress_bar (pedidos/templatetags/progress.py).
+# Contexto: progresso (dict de Pedido.progresso) e variant ("compact"|"full").
+#}
+{% load static %}
+
+{% if variant == "full" %}
+  {# ============= Variante full: timeline vertical (detalhe) ============= #}
+  <div role="progressbar"
+       aria-valuemin="0"
+       aria-valuemax="{{ progresso.total }}"
+       aria-valuenow="{{ progresso.aria_valuenow }}"
+       aria-label="Progresso do pedido: {{ progresso.rotulo }}"
+       class="relative pl-12">
+    <div class="absolute left-3 top-0 bottom-0 w-px border-l border-l-slate-200"></div>
+
+    {% for segmento in progresso.segmentos %}
+      {% with estado=segmento.estado decisao=segmento.decisao %}
+        <div class="relative pb-8 last:pb-0">
+          {# Marcador da etapa (estado tambem em texto, nao so na cor) #}
+          <div class="absolute left-0 top-2 -ml-2.5 flex h-5 w-5 items-center justify-center rounded-full border-2
+                    {% if estado == 'concluida' %}border-emerald-500 bg-emerald-500
+                    {% elif estado == 'actual' %}border-brand-700 bg-brand-700
+                    {% elif estado == 'recusada' %}border-rose-500 bg-rose-500
+                    {% else %}border-slate-200 bg-transparent{% endif %}">
+            {% if estado == 'concluida' %}
+              <svg class="w-3 h-3 text-white" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline><circle cx="12" cy="12" r="10"></circle></svg>
+            {% elif estado == 'actual' %}
+              <svg class="w-3 h-3 text-white" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {% elif estado == 'recusada' %}
+              <svg class="w-3 h-3 text-white" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            {% else %}
+              <span class="sr-only">pendente</span>
+            {% endif %}
+          </div>
+
+          <div class="ml-1">
+            <p class="text-sm font-medium text-slate-900">{{ segmento.nome }}</p>
+            <p class="text-xs text-slate-500">
+              {% if estado == 'concluida' %}Concluida
+              {% elif estado == 'actual' %}Em curso
+              {% elif estado == 'recusada' %}Recusada
+              {% else %}Pendente{% endif %}
+              {% if decisao %}
+                &middot; {{ decisao.data_hora|date:"d/m/Y H:i" }}
+              {% elif estado == 'pendente' %}
+                &middot; Sem registo ainda
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      {% endwith %}
+    {% endfor %}
+  </div>
+
+{% else %}
+  {# ============= Variante compact (lista do estudante) ============= #}
+  <div role="progressbar"
+       aria-valuemin="0"
+       aria-valuemax="{{ progresso.total }}"
+       aria-valuenow="{{ progresso.aria_valuenow }}"
+       aria-label="Progresso do pedido: {{ progresso.rotulo }}"
+       class="w-full max-w-xs">
+    <div class="flex gap-0.5">
+      {% for segmento in progresso.segmentos %}
+        <div class="flex-1 h-1.5 rounded-full
+                  {% if segmento.estado == 'concluida' %}bg-emerald-500
+                  {% elif segmento.estado == 'actual' %}bg-brand-700
+                  {% elif segmento.estado == 'recusada' %}bg-rose-500
+                  {% else %}bg-slate-200{% endif %}"
+               title="{{ segmento.nome }}: {% if segmento.estado == 'concluida' %}concluida{% elif segmento.estado == 'actual' %}actual{% elif segmento.estado == 'recusada' %}recusada{% else %}pendente{% endif %}">
+        </div>
+      {% endfor %}
+    </div>
+    <div class="mt-1 flex flex-col items-center gap-0.5">
+      {% if progresso.etapa_actual_nome %}
+        <p class="text-xs font-medium text-slate-700">{{ progresso.etapa_actual_nome }}</p>
+      {% endif %}
+      <p class="text-xs text-slate-500">{{ progresso.rotulo }}</p>
+    </div>
+  </div>
+{% endif %}

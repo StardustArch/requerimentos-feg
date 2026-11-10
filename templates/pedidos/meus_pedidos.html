@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load progress %}
 
 {% block title %}Meus pedidos · Pedidos de Documentos · UCM-FEG{% endblock %}
 
@@ -27,6 +28,7 @@
                     <th class="w-32 whitespace-nowrap">Protocolo</th>
                     <th class="whitespace-nowrap">Tipo</th>
                     <th class="w-40 whitespace-nowrap">Estado</th>
+                    <th class="w-48 whitespace-nowrap">Progresso</th>
                     <th class="w-40 whitespace-nowrap">Etapa</th>
                     <th class="w-32 whitespace-nowrap">Data</th>
                     <th class="w-20 text-right"></th>
@@ -50,6 +52,9 @@
                         {% if pedido.estado == "indeferido" and pedido.motivo_indeferimento %}
                             <p class="text-xs text-rose-600 mt-1">{{ pedido.motivo_indeferimento }}</p>
                         {% endif %}
+                    </td>
+                    <td class="whitespace-nowrap">
+                        {% progress_bar pedido "compact" %}
                     </td>
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.etapa_simples }}</td>
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>

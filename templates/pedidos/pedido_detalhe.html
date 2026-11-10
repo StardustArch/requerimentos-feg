@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load progress %}
 
 {% block title %}{{ pedido.protocolo }} · Pedidos de Documentos · UCM-FEG{% endblock %}
 
@@ -29,7 +30,8 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <dl class="grid grid-cols-2 gap-4 text-sm">
+                    {% progress_bar pedido "full" %}
+                    <dl class="grid grid-cols-2 gap-4 text-sm mt-6">
                         <dt class="text-slate-500">Tipo de documento</dt>
                         <dd class="text-slate-900">{{ pedido.tipo.nome }}</dd>
 
