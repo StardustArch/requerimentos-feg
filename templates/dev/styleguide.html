@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load progress %}
+{% load static %}
+
+{% block title %}Styleguide · Pedidos de Documentos · UCM-FEG{% endblock %}
+{% block page_title %}Styleguide{% endblock %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4 py-6 lg:px-8">
+        <h1 class="text-sm font-semibold text-slate-900 mb-[2.5rem]">Styleguide de componentes</h1>
+        <p class="text-xs text-slate-500 mb-6">
+            Página de referência dos componentes de interface. Apenas acessível com
+            <code>DEBUG=True</code>.
+        </p>
+
+        {# ===== Botões ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Botões</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-slate-500">Variantes</p>
+                    <a href="#" class="btn-primary">.btn-primary (a)</a>
+                    <button class="btn-secondary">.btn-secondary (button)</button>
+                    <input type="submit" value=".btn-primary (input)" class="btn-primary">
+                    <a href="#" class="btn-outline">.btn-outline (a)</a>
+                    <a href="#" class="btn-ghost">.btn-ghost (a)</a>
+                    <button class="btn-danger">.btn-danger (button)</button>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-slate-500">Tamanhos</p>
+                    <a href="#" class="btn-primary btn-sm">.btn-sm</a>
+                    <a href="#" class="btn-primary">base</a>
+                    <a href="#" class="btn-primary btn-lg">.btn-lg</a>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-slate-500">Estados</p>
+                    <button class="btn-primary" disabled>Desactivado</button>
+                </div>
+            </div>
+            <div class="mt-6">
+                <p class="text-xs text-slate-500">Grupo de botões</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button class="btn-primary">Guardar</button>
+                    <button class="btn-secondary">Actualizar</button>
+                    <a href="#" class="btn-outline">Cancelar</a>
+                    <a href="#" class="btn-ghost">Voltar</a>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Formulários ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Formulários</h2>
+            <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" method="post">
+                {% csrf_token %}
+                {{ form.nome }}
+                {{ form.email }}
+                {{ form.email.errors }}
+                {{ form.senha }}
+                {{ form.etapa }}
+                {{ form.observacoes }}
+                {{ form.ficheiro }}
+                <div class="col-span-2">
+                    <button type="submit" class="btn-primary">Submeter (styleguide)</button>
+                </div>
+            </form>
+        </section>
+
+        {# ===== Pills de estado ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Pills de estado</h2>
+            <div class="flex flex-wrap gap-2">
+                <span class="status-pill status-novo">Em tratamento</span>
+                <span class="status-pill status-credito">Crédito</span>
+                <span class="status-pill status-registo">Registo</span>
+                <span class="status-pill status-assinatura">Assinatura</span>
+                <span class="status-pill status-pronto">Pronto</span>
+                <span class="status-pill status-indeferido">Indeferido</span>
+            </div>
+        </section>
+
+        {# ===== Barra de progresso ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Barra de progresso</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Compact (em tratamento)</p>
+                    {% progress_bar pedidos_exemplo.0 "compact" %}
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Compact (pronto)</p>
+                    {% progress_bar pedidos_exemplo.1 "compact" %}
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Compact (entregue)</p>
+                    {% progress_bar pedidos_exemplo.2 "compact" %}
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 mb-2">Compact (indeferido)</p>
+                    {% progress_bar pedidos_exemplo.3 "compact" %}
+                </div>
+            </div>
+            <div class="mt-[2rem]">
+                <p class="text-xs text-slate-500 mb-2">Full (em tratamento)</p>
+                {% progress_bar pedidos_exemplo.0 "full" %}
+            </div>
+            <div class="mt-[2rem]">
+                <p class="text-xs text-slate-500 mb-2">Full (pronto)</p>
+                {% progress_bar pedidos_exemplo.1 "full" %}
+            </div>
+            <div class="mt-[2rem]">
+                <p class="text-xs text-slate-500 mb-2">Full (indeferido)</p>
+                {% progress_bar pedidos_exemplo.3 "full" %}
+            </div>
+        </section>
+
+        {# ===== Tabela ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Tabela de dados</h2>
+            {% include "components/table_wrap_open.html" %}
+            <table class="data-table w-full min-w-[40rem]">
+                <thead>
+                    <tr>
+                        <th class="w-32 whitespace-nowrap">Protocolo</th>
+                        <th class="whitespace-nowrap">Tipo</th>
+                        <th class="w-40 whitespace-nowrap">Estado</th>
+                        <th class="w-20 text-right"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-medium text-slate-900 whitespace-nowrap">REQ-2026-00001</td>
+                        <td class="text-slate-700 whitespace-nowrap">Certificado normal</td>
+                        <td><span class="status-pill status-pronto">Pronto</span></td>
+                        <td class="text-right"><a href="#" class="btn-outline btn-sm">Abrir</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            {% include "components/table_wrap_close.html" %}
+        </section>
+
+        {# ===== Toasts ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Toasts</h2>
+            <div class="toast-container z-50 pointer-events-none">
+                <div class="toast toast-success" role="alert">
+                    Operação concluída com sucesso.
+                    <button class="toast-dismiss" onclick="this.parentElement.remove()" aria-label="Fechar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="toast toast-error" role="alert">
+                    Ocorreu um erro ao processar o pedido.
+                    <button class="toast-dismiss" onclick="this.parentElement.remove()" aria-label="Fechar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Empty state ===== #}
+        <section class="mb-[2.5rem]">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Empty state</h2>
+            <div class="empty-state" style="max-width: 32rem;">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 text-slate-400"><circle cx="12" cy="12" r="10"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                </div>
+                <h2 class="text-sm font-semibold text-slate-900 mb-2">Sem resultados encontrados</h2>
+                <p class="text-xs text-slate-500 mb-4">Ajuste os filtros e tente novamente.</p>
+                <a href="#" class="btn-primary">Limpar filtros</a>
+            </div>
+        </section>
+    </div>
+{% endblock %}

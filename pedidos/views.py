@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from contas.models import Perfil
+from contas.widgets import StyledFileInput
 from contas.permissoes import (
     e_admin,
     estudante_required,
@@ -758,3 +759,105 @@ def carregar_extracto(request, pk):
     )
     messages.success(request, "Extracto carregado com sucesso.")
     return _voltar_ao_detalhe(pedido)
+
+
+def styleguide(request):
+    """Página de estilo (styleguide). Só acessível com DEBUG=True."""
+
+    if not settings.DEBUG:
+        raise Http404("Página não encontrada.")
+
+    from django import forms
+    from django.forms import Form
+
+    class _StyleguideForm(Form):
+        nome = forms.CharField(
+            label="Nome", widget=forms.TextInput(attrs={"placeholder": "Ex.: Maria"})
+        )
+        email = forms.EmailField(
+            label="Email", widget=forms.EmailInput(attrs={"placeholder": "exemplo@ucm.ac.mz"})
+        )
+        senha = forms.CharField(
+            label="Palavra-passe", widget=forms.PasswordInput()
+        )
+        etapa = forms.ChoiceField(
+            label="Etapa",
+            choices=[
+                ("secretaria_recepcao", "Secretaria"),
+                ("credito", "Crédito"),
+                ("registo", "Registo"),
+                ("secretaria_final", "Assinatura"),
+            ],
+            widget=forms.Select(),
+        )
+        observacoes = forms.CharField(
+            label="Observações",
+            widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Texto livre..."}),
+            required=False,
+        )
+        ficheiro = forms.FileField(
+            label="Anexo", required=False,
+            widget=StyledFileInput(attrs={"accept": ".pdf,.jpg,.jpeg,.png"}),
+        )
+
+    form = _StyleguideForm()
+    # Forçar campos desactivado e em erro para demonstração.
+    form.fields["senha"].widget.attrs["disabled"] = "disabled"
+    from django.forms.utils import ErrorList
+    if form._errors is None:
+        form._errors = {}
+    form._errors["email"] = ErrorList(["Este email já está em uso."])
+
+    class _FakePedido:
+        """Objeto leve que expõe a propriedade `progresso` para o styleguide."""
+
+        def __init__(self, segmento_estados, rotulo, total, indice, aria, etapa_nome):
+            self._progresso = {
+                "segmentos": [
+                    {"nome": n, "estado": e} for n, e in segmento_estados
+                ],
+                "total": total,
+                "indice_actual": indice,
+                "aria_valuenow": aria,
+                "etapa_actual_nome": etapa_nome,
+                "rotulo": rotulo,
+            }
+
+        @property
+        def progresso(self):
+            return self._progresso
+
+    pedidos_exemplo = [
+        _FakePedido(
+            [("Secretaria", "concluida"), ("Crédito", "actual"),
+             ("Registo", "pendente"), ("Assinatura", "pendente")],
+            "etapa 2 de 4", 4, 1, 1, "Crédito",
+        ),
+        _FakePedido(
+            [("Secretaria", "concluida"), ("Crédito", "concluida"),
+             ("Registo", "concluida"), ("Assinatura", "concluida")],
+            "Pronto para levantamento", 4, 3, 4, None,
+        ),
+        _FakePedido(
+            [("Secretaria", "concluida"), ("Crédito", "concluida"),
+             ("Registo", "concluida"), ("Assinatura", "concluida")],
+            "Entregue", 4, 3, 4, None,
+        ),
+        _FakePedido(
+            [("Secretaria", "concluida"), ("Crédito", "recusada"),
+             ("Registo", "pendente"), ("Assinatura", "pendente")],
+            "Indeferido em credito", 4, 1, 1, "Crédito",
+        ),
+        _FakePedido(
+            [("Secretaria", "concluida"), ("Crédito", "concluida"),
+             ("Assinatura", "pendente")],
+            "etapa 3 de 3", 3, 2, 2, "Assinatura",
+        ),
+    ]
+
+    return render(
+        request,
+        "dev/styleguide.html",
+        {"form": form, "pedidos_exemplo": pedidos_exemplo},
+    )
+
