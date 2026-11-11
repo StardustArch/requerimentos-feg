@@ -1,17 +1,17 @@
 from django import forms
 
+from .form_mixins import StyledFormMixin
 from .models import Curso, Perfil
 
 
-class CompletarPerfilForm(forms.ModelForm):
+class CompletarPerfilForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Perfil
         fields = ("curso", "telefone")
         widgets = {
-            "curso": forms.Select(attrs={"class": "form-select"}),
+            "curso": forms.Select(),
             "telefone": forms.TextInput(
                 attrs={
-                    "class": "form-control",
                     "placeholder": "Ex.: 84 000 0000",
                 }
             ),

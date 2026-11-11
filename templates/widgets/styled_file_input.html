@@ -1,0 +1,59 @@
+{# Widget de upload de ficheiro: input real oculto (acessível) + label
+   estilizado como botão secondary + nome do ficheiro ao lado. #}
+<div class="file-upload relative" id="container-{{ input_id }}">
+    {# Input real: visualmente oculto, mas acessível e com foco via label #}
+    <input type="file"
+           name="{{ name }}"
+           id="{{ input_id }}"
+           accept="{{ accept }}"
+           {{ required }}
+           aria-label="{{ aria_label }}"
+           class="sr-only absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+    {# Label como botão secondary; foco visível quando o input tem foco #}
+    <label for="{{ input_id }}"
+           class="btn-secondary btn-sm inline-flex items-center gap-2 pr-4 cursor-pointer">
+        {% include "components/icon.html" with icon_name="upload" size="4" %}
+        <span>Escolher ficheiro</span>
+    </label>
+
+    {# Nome do ficheiro seleccionado (actualizado por up.compiler abaixo) #}
+    <span id="nome-ficheiro-{{ input_id }}"
+          class="ml-3 text-xs text-slate-500 font-medium min-w-[120px]">
+        {{ current_name|default:"Nenhum ficheiro seleccionado" }}
+    </span>
+
+    <script>
+        (function () {
+            var input = document.getElementById("{{ input_id }}");
+            var nome = document.getElementById("nome-ficheiro-{{ input_id }}");
+            if (!input || !nome) return;
+
+            function actualizar() {
+                var ficheiros = input.files || [];
+                if (ficheiros.length) {
+                    nome.textContent = ficheiros[0].name;
+                    nome.className = "ml-3 text-xs text-slate-700 font-medium min-w-[120px]";
+                } else {
+                    nome.textContent = "Nenhum ficheiro seleccionado";
+                    nome.className = "ml-3 text-xs text-slate-500 font-medium min-w-[120px]";
+                }
+            }
+
+            input.addEventListener("change", actualizar);
+
+            // up.compiler do Unpoly: re-vincula após navegações parciais
+            if (window.up && window.up.compiler) {
+                up.compiler("[id='container-{{ input_id }}']", function (el) {
+                    var i = el.querySelector("input[type=file]");
+                    var n = el.querySelector("#nome-ficheiro-{{ input_id }}");
+                    if (i && n) {
+                        i.removeEventListener("change", actualizar);
+                        i.addEventListener("change", actualizar);
+                        actualizar();
+                    }
+                });
+            }
+        })();
+    </script>
+</div>
