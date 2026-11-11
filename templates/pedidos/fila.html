@@ -16,7 +16,7 @@
             <h2 class="text-sm font-semibold text-slate-900">Pedidos em espera</h2>
         </div>
         {% if request.user.perfil.papel == "secretaria" or request.user.perfil.papel == "admin" or request.user.is_superuser %}
-            <a href="{% url 'pedidos:pesquisa' %}" class="btn-ghost btn-sm">Pesquisar pedidos</a>
+            <a href="{% url 'pedidos:pesquisa' %}" class="btn-outline btn-sm">Pesquisar pedidos</a>
         {% endif %}
     </div>
 
@@ -39,17 +39,17 @@
     {% elif not etapa %}
         <ul class="flex gap-1 mb-4">
             <li>
-                <a href="{% url 'pedidos:fila' %}?tab=novos" class="px-4 py-2 rounded-xl text-xs font-medium {% if tab == 'novos' %}bg-brand-50 text-brand-700{% else %}text-slate-500 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <a href="{% url 'pedidos:fila' %}?tab=novos" class="btn-outline btn-sm {% if tab == 'novos' %}btn-primary{% endif %}">
                     Novos <span class="ml-1 inline-block px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px]">{{ contagens.novos }}</span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'pedidos:fila' %}?tab=assinatura" class="px-4 py-2 rounded-xl text-xs font-medium {% if tab == 'assinatura' %}bg-brand-50 text-brand-700{% else %}text-slate-500 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <a href="{% url 'pedidos:fila' %}?tab=assinatura" class="btn-outline btn-sm {% if tab == 'assinatura' %}btn-primary{% endif %}">
                     Aguardam assinatura <span class="ml-1 inline-block px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px]">{{ contagens.assinatura }}</span>
                 </a>
             </li>
             <li>
-                <a href="{% url 'pedidos:fila' %}?tab=prontos" class="px-4 py-2 rounded-xl text-xs font-medium {% if tab == 'prontos' %}bg-brand-50 text-brand-700{% else %}text-slate-500 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                <a href="{% url 'pedidos:fila' %}?tab=prontos" class="btn-outline btn-sm {% if tab == 'prontos' %}btn-primary{% endif %}">
                     Prontos <span class="ml-1 inline-block px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px]">{{ contagens.prontos }}</span>
                 </a>
             </li>
@@ -81,7 +81,7 @@
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.dias_na_fila }} dia{{ pedido.dias_na_fila|pluralize:"s" }}</td>
                     <td class="text-right">
-                        <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Abrir</a>
+                        <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="btn-outline btn-sm">Abrir</a>
                     </td>
                 </tr>
                 {% endfor %}

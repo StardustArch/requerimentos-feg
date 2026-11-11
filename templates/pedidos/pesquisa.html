@@ -50,7 +50,7 @@
                 </div>
                 {% if q or estado or etapa or tipo %}
                     <div class="flex items-end col-span-1 sm:col-span-2 lg:col-span-1">
-                        <a href="{% url 'pedidos:pesquisa' %}" class="w-full btn-ghost btn-sm">Limpar filtros</a>
+                        <a href="{% url 'pedidos:pesquisa' %}" class="w-full btn-outline btn-sm">Limpar filtros</a>
                     </div>
                 {% endif %}
             </form>
@@ -98,7 +98,7 @@
                     <td class="text-sm text-slate-700">{{ pedido.etapa_simples }}</td>
                     <td class="text-sm text-slate-700 whitespace-nowrap">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
                     <td class="text-right">
-                        <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Abrir</a>
+                        <a href="{% url 'pedidos:pedido_staff_detalhe' pedido.pk %}" class="btn-outline btn-sm">Abrir</a>
                     </td>
                 </tr>
                 {% endfor %}

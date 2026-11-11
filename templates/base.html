@@ -82,15 +82,6 @@
                 {% endwith %}
             </nav>
 
-            <div class="border-t border-slate-100 px-4 py-3">
-                <form action="{% url 'contas:logout' %}" method="post" class="flex items-center gap-2">
-                    {% csrf_token %}
-                    <button type="submit" class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors">
-                        {% include "components/icon.html" with icon_name="box-arrow-right" size="5" %}
-                        <span>Terminar sessão</span>
-                    </button>
-                </form>
-            </div>
         </div>
     </aside>
 
@@ -116,9 +107,12 @@
                         <span class="text-xs font-bold text-brand-700">{{ request.user.username|slice:":1"|upper }}</span>
                     </div>
                     <div class="w-px h-3 bg-slate-200 mx-1"></div>
-                    <form action="{% url 'contas:logout' %}" method="post">
+                    <form action="{% url 'contas:logout' %}" method="post" class="flex items-center gap-1.5">
                         {% csrf_token %}
-                        <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-medium">Terminar sessão</button>
+                        <button type="submit" class="btn-ghost btn-sm flex items-center gap-1.5">
+                            {% include "components/icon.html" with icon_name="box-arrow-right" size="4" %}
+                            <span>Terminar sessão</span>
+                        </button>
                     </form>
                 </div>
             </div>

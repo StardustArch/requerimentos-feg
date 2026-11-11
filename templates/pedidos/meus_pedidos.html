@@ -59,7 +59,7 @@
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.etapa_simples }}</td>
                     <td class="text-slate-700 whitespace-nowrap">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
                     <td class="text-right">
-                        <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="text-sm text-brand-600 hover:text-brand-700 font-medium">Ver detalhe</a>
+                        <a href="{% url 'pedidos:pedido_detalhe' pedido.pk %}" class="btn-outline btn-sm">Ver detalhe</a>
                     </td>
                 </tr>
                 {% endfor %}
