@@ -5,16 +5,17 @@
 Comando executado: `python manage.py test`
 
 ```
-Ran 108 tests in 88.866s
+Ran 110 tests in 85.901s
 OK
 Destroying test database for alias 'default'...
-Found 108 test(s).
+Found 110 test(s).
 System check identified no issues (0 silenced).
 ```
 
-**Resultado: 108 testes executados, 108 aprovados, 0 falhas, 0 erros.** Resultado
-confirmado em execução real (`python manage.py test`, 88.866s) na data da
-actualização deste dossier. Inclui 12 testes novos da propriedade `progresso`.
+**Resultado: 110 testes executados, 110 aprovados, 0 falhas, 0 erros.** Resultado
+confirmado em execução real (`python manage.py test`, 85.901s) na data da
+actualização deste dossier. Inclui 12 testes novos da propriedade `progresso`
+e 2 testes novos da página de styleguide.
 
 A base de dados de teste é SQLite partilhada em memória
 (`file:memorydb_default?mode=memory&cache=shared`), configurada pelo Django
@@ -37,6 +38,7 @@ teste de frontend/JS; apenas valida a resposta do endpoint.
 | `pedidos/test_fase3.py` | pedidos | Testes da fase 3 (filas, decisões, entrega e emails) |
 | `pedidos/test_fase4.py` | pedidos | Testes da fase 4 (painel, backup, paginação, páginas de erro) |
 | `pedidos/test_progresso.py` | pedidos | Testes da propriedade `progresso` (12 testes: pedido com/sem Registo em cada estado) |
+| `pedidos/test_styleguide.py` | pedidos | Testes da página `/dev/styleguide/` (2 testes: acessível com DEBUG=True, 404 caso contrário) |
 
 ## 10.3 Lista de testes por classe
 

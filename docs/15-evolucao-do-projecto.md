@@ -79,6 +79,12 @@ O que mudou:
 | `438d4de` | corrigir sidebar mobile e scroll das tabelas | Sidebar mobile (drawer, botão hambúrguer, overlay, tecla Esc), tabelas com scroll horizontal (`table_wrap`), capturas de ecrã em `docs/screens/` (desktop 1440px e mobile 390px). |
 | `94b8cfb` | remover executável do Tailwind CLI do rastreamento do Git | `static/tailwindcss` deixado de ser rastreado no Git (`.gitignore`). |
 | `49a70a5` | barra de progresso por pedido na lista do estudante | Propriedade `Pedido.progresso`, templatetag `progress_bar`, componente `progress_steps.html` (compact/full) e 12 testes novos; total de testes passa de 96 para 108. |
+| `7d52eb6` | ui: botões com base partilhada, tamanhos e variantes | `input.css` (`.btn`, `.btn-primary`, `.btn-secondary`, `.btn-outline`, `.btn-ghost`, `.btn-danger` com `h-10 px-4`, `btn-sm`/`btn-lg`, alvos de toque ≥ 44px em ecrãs < md) aplicado a todos os templates. |
+| `25ca9fe` | ui: formulários com classes automáticas, widget de upload e erros com borda rose | `StyledFormMixin` (`contas/form_mixins.py`), `StyledFileInput` (`contas/widgets.py` + `templates/widgets/styled_file_input.html`); aplicado a `NovoPedidoForm` e `CompletarPerfilForm`. |
+| `fd8a224` | ui: timeline vertical da barra de progresso (variante full) | `templates/components/progress_steps.html` reescrito (`<ol>` com pontos `ring-4 ring-white`, ícones Lucide 12px, texto descritivo). |
+| `fae3989` | ui: acertos pequenos | "Terminar sessão" só no menu do utilizador; "Voltar" no cabeçalho do detalhe; motivo em linha inteira; pesquisa do topo escondida para o estudante. |
+| `0de9784` | ui: btn-sm com altura 36px | Ajuste de acessibilidade para passar na auditoria de UI (`tools/audit_ui.py`). |
+| `4e7b342` | ui: página de styleguide | `/dev/styleguide/` só com `DEBUG=True` (404 caso contrário), com teste (`pedidos/test_styleguide.py`). |
 
 ## Porquê da migração (sustentado pelo histórico e por `docs/migracao-resumo.md`)
 
@@ -90,7 +96,7 @@ O que mudou:
   com scroll).
 - Servir todos os activos de frontend localmente (sem CDN): CSS compilado,
   fontes locais, ícones SVG, Unpoly local.
-- Manter o número de testes a passar (96/96 na migração; 108/108 após a adição da barra de progresso).
+- Manter o número de testes a passar (96/96 na migração; 108/108 após a barra de progresso; 110/110 após o styleguide).
 
 ## Estado actual do frontend (resultado da migração)
 

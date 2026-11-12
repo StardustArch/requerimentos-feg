@@ -17,6 +17,7 @@
 | Uso limitado de Unpoly: apenas o select de tipo de documento no novo pedido usa `up-target`/`up-autosubmit`; os restantes formulários e links funcionam como HTML normal sem JavaScript (progressive enhancement) | `templates/pedidos/novo_pedido.html` (select `tipo`), `templates/base.html` (configuração `up.framework.config.layer = 'page'` e cabeçalho CSRF) |
 | Não existe cache-buster (parâmetro `?v=` ou similar) na referência a `static/css/app.css` em `templates/base.html`; após um build do Tailwind, navegadores podem manter a versão em cache do CSS | `templates/base.html` linha 9 (`<link rel="stylesheet" href="{% static 'css/app.css' %}">`) |
 | O admin do Django permite editar tipos de documento (taxas/prazos) em tempo real, o que pode afectar pedidos futuros mas não os já criados (valor congelado) | `pedidos/admin.py` `TipoDocumentoAdmin` (list_editable) |
+| A página de styleguide (`/dev/styleguide/`) só está acessível com `DEBUG=True`; em produção devolve 404 para não expor componentes internos de UI | `pedidos/views.py` `styleguide` (verificação `settings.DEBUG`); `config/urls.py` |
 
 ## 12.2 Trabalho futuro plausível
 
