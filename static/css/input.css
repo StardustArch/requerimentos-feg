@@ -237,7 +237,7 @@
   .btn-outline.btn-sm,
   .btn-ghost.btn-sm,
   .btn-danger.btn-sm {
-    height: 2rem;            /* h-8 */
+    height: 2.25rem;         /* 36px (alvo de toque mínimo em desktop) */
     padding: 0 0.75rem;      /* px-3 */
     font-size: 0.75rem;      /* text-xs */
   }
