@@ -36,6 +36,31 @@ As transições só são possíveis quando o pedido está em
 - `marcar_entregue` (linhas 179-202): apenas se o estado for `pronto`.
 - `_bloquear` (linhas 44-49): `select_for_update` no pedido.
 
+## 6.4 Barra de progresso por pedido
+
+A propriedade `Pedido.progresso` (`pedidos/models.py`) calcula os dados da
+barra de progresso a partir das etapas aplicáveis ao pedido e do histórico de
+decisões (`pedido.decisoes`), nunca de deduções por texto.
+
+- As etapas aplicáveis são as de `ETAPAS_APROVACAO`
+  (`pedidos/services.py`), acrescidas da etapa `secretaria_final` ("Assinatura"):
+  - Se `TipoDocumento.passa_registo_academico` for `True`: 4 segmentos
+    (Secretaria, Crédito, Registo, Assinatura).
+  - Se for `False`: 3 segmentos (salta o Registo).
+- Cada segmento tem um estado: `concluida`, `actual`, `pendente` ou `recusada`.
+  - `em_tratamento`: etapas anteriores à actual são concluídas, a actual é
+    destacada, as seguintes são pendentes.
+  - `pronto` / `entregue`: todos os segmentos são concluídos.
+  - `indeferido`: segmentos anteriores a `indeferido_na_etapa` são concluídos,
+    o segmento de `indeferido_na_etapa` é recusado, os seguintes são pendentes.
+    (O código permite indeferir em `secretaria_final` enquanto o estado é
+    `em_tratamento`.)
+- O rótulo é "etapa X de Y" em `em_tratamento`, "Pronto para levantamento" em
+  `pronto` e "Entregue" em `entregue`.
+
+**Ficheiro:** `pedidos/models.py`, propriedade `progresso` (e helper
+`_rotulo_progresso`); `pedidos/services.py`, `ETAPAS_APROVACAO`.
+
 ## 6.3 O que cada departamento pode fazer
 
 As regras de papel por etapa estão em `PAPEIS_POR_ETAPA`:

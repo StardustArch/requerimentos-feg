@@ -27,14 +27,23 @@ e `docs/screens/` não foram alterados nem apagados.
 | `docs/12-limitacoes-e-trabalho-futuro.md` | Novas limitações: dependência do build do Tailwind, uso limitado de Unpoly (só select de tipo), ausência de cache-buster no CSS. |
 | `docs/14-glossario-e-abreviaturas.md` | HTMX marcado como removido; acrescidos Unpoly, Tailwind CSS, Lucide, Inter, sidebar, drawer, token de design, progressive enhancement; Bootstrap ajustado (não referenciado). |
 
+## Ficheiros actualizados (documentação da barra de progresso — commit 49a70a5)
+
+| Ficheiro | Alteração (1-3 linhas) |
+|----------|------------------------|
+| `docs/02-requisitos.md` | Novo RF32: estudante vê barra de progresso na lista "Meus pedidos" (3 ou 4 segmentos consoante `passa_registo_academico`). |
+| `docs/03-casos-de-uso.md` | CU05: lista "Meus pedidos" e detalhe mostram a barra de progresso (variantes compact/full). |
+| `docs/06-regras-de-negocio.md` | Nova secção 6.4: regra de negócio da barra de progresso (etapas aplicáveis, estados, rótulos). |
+| `docs/09-interface.md` | Componente `progress_steps.html` na tabela UI; tela "Meus pedidos" com barra de progresso. |
+| `docs/10-testes.md` | Total de testes passa de 96 para 108; novo ficheiro `test_progresso.py` (12 testes); matriz RF32. |
+| `docs/15-evolucao-do-projecto.md` | Commit `49a70a5` na fase C; contagem de testes actualizada para 108/108. |
+
 ## Ficheiros sem alterações
 
 | Ficheiro | Motivo |
 |----------|--------|
-| `docs/03-casos-de-uso.md` | Actores e casos de uso de negócio inalterados. |
-| `docs/05-modelo-de-dados.md` | Modelos e fluxo de estados inalterados. |
-| `docs/06-regras-de-negocio.md` | Regras de negócio inalteradas. |
+| `docs/05-modelo-de-dados.md` | Modelos e fluxo de estados inalterados (a propriedade `progresso` não altera o modelo de dados). |
 | `docs/08-permissoes.md` | Tabela de permissões e decoradores inalterados. |
 | `docs/13-mapa-para-a-monografia.md` | Mapeamento de ficheiros para secções da monografia ainda válido. |
 | `docs/migracao-*.md` | Não alterados (regra de preservação). |
-| `docs/screens/` | Não apagados nem alterados. |
+| `docs/screens/` | Não apagados nem alterados (capturas existentes mantidas; novas capturas da barra de progresso não foram solicitadas nesta tarefa). |

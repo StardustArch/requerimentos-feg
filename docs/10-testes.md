@@ -5,16 +5,16 @@
 Comando executado: `python manage.py test`
 
 ```
-Ran 96 tests in 82.978s
+Ran 108 tests in 88.866s
 OK
 Destroying test database for alias 'default'...
-Found 96 test(s).
+Found 108 test(s).
 System check identified no issues (0 silenced).
 ```
 
-**Resultado: 96 testes executados, 96 aprovados, 0 falhas, 0 erros.** Resultado
-confirmado em execução real (`python manage.py test`, 84.796s) na data da
-actualização deste dossier.
+**Resultado: 108 testes executados, 108 aprovados, 0 falhas, 0 erros.** Resultado
+confirmado em execução real (`python manage.py test`, 88.866s) na data da
+actualização deste dossier. Inclui 12 testes novos da propriedade `progresso`.
 
 A base de dados de teste é SQLite partilhada em memória
 (`file:memorydb_default?mode=memory&cache=shared`), configurada pelo Django
@@ -36,6 +36,7 @@ teste de frontend/JS; apenas valida a resposta do endpoint.
 | `pedidos/tests.py` | pedidos | Testes de tipos, seed, pedidos, anexos, staff |
 | `pedidos/test_fase3.py` | pedidos | Testes da fase 3 (filas, decisões, entrega e emails) |
 | `pedidos/test_fase4.py` | pedidos | Testes da fase 4 (painel, backup, paginação, páginas de erro) |
+| `pedidos/test_progresso.py` | pedidos | Testes da propriedade `progresso` (12 testes: pedido com/sem Registo em cada estado) |
 
 ## 10.3 Lista de testes por classe
 
@@ -102,6 +103,12 @@ Classes principais (extraídas do ficheiro):
 | | `test_pagina_404_usa_o_tema_e_devolve_o_codigo_certo` | 404 com tema UCM |
 | | `test_404_nao_revela_um_recurso_sem_acesso` | 404 não revela protocolo/nome/email |
 
+### `pedidos/test_progresso.py`
+
+| Classe | O que verifica |
+| --- | --- |
+| `ProgressoTests` | Pedido com Registo (4 segmentos) e sem Registo (3 segmentos) em cada estado (em tratamento, pronto, entregue, indeferido); indeferido em Crédito, Registo e secretaria_final; histórico de `Decisao` como fonte de datas |
+
 ## 10.4 Matriz requisito x teste
 
 | Requisito | Testes que cobrem |
@@ -116,6 +123,7 @@ Classes principais (extraídas do ficheiro):
 | RF08 - Detalhe do pedido | `PedidoEstudanteTests.test_submissao_valida...` (ver detalhe) |
 | RF09 - Download anexos | `PedidoEstudanteTests.test_dono_descarrega_anexos...` |
 | RF10 - 404 para outros/ocultos | `PedidoEstudanteTests.test_outro_estudante_recebe_404...` |
+| RF32 - Barra de progresso | `ProgressoTests` (12 testes: pedido com/sem Registo em cada estado) |
 | RF11-RF15 - Tratamento staff | `pedidos/test_fase3.py` (filas, decisões, entrega) |
 | RF16 - Painel secretaria | `PainelTests.test_painel_so_abre_a_secretaria_e_ao_admin` |
 | RF17-RF19 - Crédito | `pedidos/test_fase3.py`, `AnexoDownloadStaffTests` |

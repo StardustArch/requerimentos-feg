@@ -40,6 +40,12 @@ que o implementa.
 | RF09 | O estudante faz download dos seus anexos visíveis. | `pedidos.views.anexo_download` | `pedidos/views.py` linhas 226-252 |
 | RF10 | Um pedido de outro estudante ou um anexo não visível responde com 404 (não revela existência). | `pedidos.views.pedido_detalhe`, `anexo_download` | `pedidos/views.py` linhas 182-193, 226-252 |
 
+### RF — Acompanhamento do progresso (Estudante)
+
+| ID | Requisito | View / Rota | Ficheiro / Linha |
+| --- | --- | --- | --- |
+| RF32 | O estudante vê a barra de progresso do pedido na lista "Meus pedidos", com as etapas aplicáveis (3 ou 4 consoante o tipo de documento) e a etapa actual destacada. | `pedidos.views.meus_pedidos` | `pedidos/models.py` propriedade `progresso`; `templates/components/progress_steps.html` (variante compact); `templates/pedidos/meus_pedidos.html` |
+
 ### RF — Tratamento pela Secretaria (Staff)
 
 | ID | Requisito | View / Rota | Ficheiro / Linha |

@@ -78,6 +78,7 @@ O que mudou:
 |--------|----------|-------------|
 | `438d4de` | corrigir sidebar mobile e scroll das tabelas | Sidebar mobile (drawer, botão hambúrguer, overlay, tecla Esc), tabelas com scroll horizontal (`table_wrap`), capturas de ecrã em `docs/screens/` (desktop 1440px e mobile 390px). |
 | `94b8cfb` | remover executável do Tailwind CLI do rastreamento do Git | `static/tailwindcss` deixado de ser rastreado no Git (`.gitignore`). |
+| `49a70a5` | barra de progresso por pedido na lista do estudante | Propriedade `Pedido.progresso`, templatetag `progress_bar`, componente `progress_steps.html` (compact/full) e 12 testes novos; total de testes passa de 96 para 108. |
 
 ## Porquê da migração (sustentado pelo histórico e por `docs/migracao-resumo.md`)
 
@@ -89,7 +90,7 @@ O que mudou:
   com scroll).
 - Servir todos os activos de frontend localmente (sem CDN): CSS compilado,
   fontes locais, ícones SVG, Unpoly local.
-- Manter o número de testes a passar (96/96) ao longo da migração.
+- Manter o número de testes a passar (96/96 na migração; 108/108 após a adição da barra de progresso).
 
 ## Estado actual do frontend (resultado da migração)
 

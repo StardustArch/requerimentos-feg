@@ -124,11 +124,15 @@ função que o implementam.
 - **Fluxo principal:**
   1. Acede a `/pedidos/meus/`.
   2. Vê a lista paginada (25 por página) com protocolo, tipo, estado, etapa
-     e data.
-  3. Clica em "Ver detalhe" para ver o detalhe de um pedido.
+     e data, incluindo a barra de progresso de cada pedido (etapas aplicáveis
+     e etapa actual destacada).
+  3. Clica em "Ver detalhe" para ver o detalhe de um pedido, incluindo a
+     barra de progresso completa (variante full com datas/horas das etapas).
 - **Pós-condição:** nenhum (consulta apenas).
 - **Referência:** `pedidos/views.py`, `meus_pedidos`, linhas 166-177;
-  `templates/pedidos/meus_pedidos.html`.
+  `pedidos/models.py`, propriedade `progresso`;
+  `templates/pedidos/meus_pedidos.html`,
+  `templates/components/progress_steps.html`.
 
 ### CU06 — Ver detalhe do pedido
 

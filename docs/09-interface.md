@@ -12,6 +12,7 @@
 | Logótipo | `static/img/logo-ucm.png` | Logótipo UCM na sidebar e topbar |
 | Tabela com scroll | `templates/components/table_wrap.html` (+ `table_wrap_open/close`) | Wrapper `overflow-x-auto` para tabelas em ecrãs pequenos |
 | Componente paginação | `templates/_paginacao.html` | Paginação de 25 itens reutilizável |
+| Barra de progresso | `templates/components/progress_steps.html` | Barra de progresso por pedido (variante `compact` na lista do estudante, `full` no detalhe); segmentos com cores por estado (concluída=emerald-500, actual=brand-700, pendente=slate-200, recusada=rose-500) e texto descritivo |
 
 O design é responsivo com utilitários Tailwind (`lg:`, `md:`, `sm:`): sidebar fixa em
 desktop e drawer (oculta com `-translate-x-full`) em mobile; tabelas com scroll
@@ -52,7 +53,7 @@ Fonte: `tailwind.config.js` e `static/css/input.css` (`@theme`).
 | `contas/bloqueio_numero.html` | (redireccionamento) | Mensagem: número de estudante não identificado; contactar Secretaria | Sair |
 | `pedidos/novo_pedido.html` | `/pedidos/novo/` | Formulário: tipo, motivo, 2 anexos; resumo da taxa actualizado via Unpoly (`up-autosubmit`) | Submeter pedido |
 | `pedidos/_resumo_pedido.html` | (include) | Taxa base, IVA, total a pagar, prazo estimado; alvo Unpoly `id="resumo-pedido"` | — |
-| `pedidos/meus_pedidos.html` | `/pedidos/meus/` | Lista paginada (25) de pedidos com estado e etapa | Ver detalhe, novo pedido |
+| `pedidos/meus_pedidos.html` | `/pedidos/meus/` | Lista paginada (25) de pedidos com estado, etapa e barra de progresso | Ver detalhe, novo pedido |
 | `pedidos/pedido_detalhe.html` | `/pedidos/<pk>/` | Detalhe: tipo, grau, motivo, valor, etapa, anexos | Descarregar anexos |
 
 ### Secretaria
