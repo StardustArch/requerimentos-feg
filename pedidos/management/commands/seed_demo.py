@@ -111,6 +111,12 @@ TIPOS_DOCUMENTO = (
 
 UTILIZADORES_DEMO = (
     {
+        "username": "emanuel",
+        "email": "emanuel@ucm.ac.mz",
+        "papel": Perfil.PAPEL_ADMIN,
+        "superuser": True,
+    },
+    {
         "username": "admin",
         "email": "admin@ucm.ac.mz",
         "papel": Perfil.PAPEL_ADMIN,

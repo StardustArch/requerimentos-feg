@@ -5,4 +5,3 @@ python manage.py collectstatic --noinput
 python manage.py migrate
 python manage.py seed_demo
 python manage.py carregar_cursos
-python manage.py importar_utilizadores
