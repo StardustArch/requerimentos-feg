@@ -38,7 +38,12 @@ if not SECRET_KEY and (DEBUG or "test" in sys.argv):
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # URL pública do site (útil para links absolutos e para CSRF_TRUSTED_ORIGINS).
-SITE_URL = os.environ.get("SITE_URL", "")
+# O Django 4.0+ exige que CSRF_TRUSTED_ORIGINS tenha esquema (http:// ou
+# https://); garante-se o https:// quando a variável vier sem esquema.
+_SITE_URL_BRUTO = os.environ.get("SITE_URL", "").strip()
+if _SITE_URL_BRUTO and not _SITE_URL_BRUTO.startswith(("http://", "https://")):
+    _SITE_URL_BRUTO = "https://" + _SITE_URL_BRUTO
+SITE_URL = _SITE_URL_BRUTO
 CSRF_TRUSTED_ORIGINS = [SITE_URL.rstrip("/")] if SITE_URL else []
 
 # Cabeçalhos de segurança aplicados em todos os ambientes. O HSTS fica
