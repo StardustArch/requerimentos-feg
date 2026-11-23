@@ -6,6 +6,7 @@ codebase can run in development and in production.
 """
 
 import os
+import sys
 from decimal import Decimal
 from pathlib import Path
 
@@ -23,24 +24,22 @@ def _env_bool(nome, default=False):
 # Core / security
 # ---------------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-requerimentos-%y_p@d!5gg#88$8(d$qv$lvi4*!!wjyhzdy",
-)
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+_SECRETO_PADRAO = "django-insecure-requerimentos-%y_p@d!5gg#88$8(d$qv$lvi4*!!wjyhzdy"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY and (DEBUG or "test" in sys.argv):
+    # Em produção (DEBUG=False) a chave deve vir de DJANGO_SECRET_KEY; sem
+    # ela o Django levanta ImproperlyConfigured ao usar sessões/signing — o
+    # comportamento seguro que se quer no Render. No test runner usa-se a
+    # chave padrão para não partir a suíte de testes sem variáveis de ambiente.
+    SECRET_KEY = _SECRETO_PADRAO
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"] + [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
+# URL pública do site (útil para links absolutos e para CSRF_TRUSTED_ORIGINS).
+SITE_URL = os.environ.get("SITE_URL", "")
+CSRF_TRUSTED_ORIGINS = [SITE_URL.rstrip("/")] if SITE_URL else []
 
 # Cabeçalhos de segurança aplicados em todos os ambientes. O HSTS fica
 # desligado em desenvolvimento e usa um valor baixo (1 hora) em produção; pode
@@ -58,7 +57,11 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool(
 )
 SECURE_HSTS_PRELOAD = _env_bool("DJANGO_HSTS_PRELOAD", not DEBUG)
 
-if not DEBUG:
+if not DEBUG and "test" not in sys.argv:
+    # Em testes o DEBUG é forçado por caso (@override_settings) e o cliente
+    # fala sobre HTTP; ligações de segurança que forçam HTTPS partiriam a
+    # suíte sem variáveis de ambiente. Em produção (Render) DEBUG=False e
+    # este bloco aplica-se normalmente.
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -90,6 +93,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -205,8 +209,32 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "static_root"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Em testes usa-se o armazenamento estático sem *hash*: os testes verificam
+# URLs de estáticos (por exemplo 'css/app.css') que o armazenamento com
+# *manifest* tornaria imprevisíveis. Em produção (Render) mantém-se o
+# armazenamento comprimido com *manifest* exigido para o deploy.
+if "test" in sys.argv:
+    _BACKEND_STATICFILES = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    _BACKEND_STATICFILES = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": _BACKEND_STATICFILES,
+    },
+}
+
+# O bootstrap.min.css vendored referencia um ficheiro .map que não existe no
+# repositório. Com o armazenamento manifest estrito o collectstatic falharia
+# por causa disso; desliga o modo estrito para que ficheiros ausentes sejam
+# ignorados com um aviso em vez de interromper o build.
+WHITENOISE_MANIFEST_STRICT = False
 
 
 # ---------------------------------------------------------------------------
@@ -262,8 +290,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# URL público do site (útil para links absolutos em fases seguintes).
-SITE_URL = os.environ.get("SITE_URL", "")
+
 
 
 # ---------------------------------------------------------------------------

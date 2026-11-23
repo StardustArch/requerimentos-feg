@@ -1,5 +1,11 @@
-@import "tailwindcss";
-
+/*
+ * @import "tailwindcss" — diretiva do Tailwind CLI (especificador de módulo,
+ * não um ficheiro estático). Desativada aqui porque o armazenamento de
+ * estáticos com manifest (CompressedManifestStaticFilesStorage) trata o
+ * "@import" como referência a ficheiro e o collectstatic falharia.
+ * Para regenerar o CSS localmente (`python manage.py tailwind`), reative
+ * esta linha antes de executar o comando.
+ */
 @source "./templates/**/*.html";
 
 @theme {

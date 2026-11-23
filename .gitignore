@@ -18,6 +18,7 @@ db.sqlite3-journal
 
 # Ficheiros estáticos recolhidos e media
 staticfiles/
+static_root/
 media/
 
 # Cópias de segurança locais (base de dados + media)
