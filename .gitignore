@@ -32,3 +32,4 @@ Thumbs.db
 
 # Binário do Tailwind CLI (não deve ser versionado)
 static/tailwindcss
+.env.dev
